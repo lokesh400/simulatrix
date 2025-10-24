@@ -1,62 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>SHM Simulation</title>
-  <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHM — Realistic Mass & Spring</title>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
+<style>
+  body{margin:0;font-family:sans-serif;background:#eef6ff;}
+  #controls{position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.8);padding:12px;border-radius:12px;}
+  input[type=range]{width:180px;margin-bottom:6px;}
+  label{font-size:13px;}
+</style>
 </head>
 <body>
+
+<div id="controls">
+  <div><label>Mass (kg) <span id="massVal">1</span></label><br><input id="massSlider" type="range" min="0.1" max="10" step="0.1" value="1"></div>
+  <div><label>Spring k (N/m) <span id="kVal">10</span></label><br><input id="kSlider" type="range" min="1" max="100" step="1" value="10"></div>
+  <div><label>Damping c (kg/s) <span id="cVal">0</span></label><br><input id="cSlider" type="range" min="0" max="2" step="0.01" value="0"></div>
+  <div><label>Initial x0 (m) <span id="x0Val">0.5</span></label><br><input id="x0Slider" type="range" min="-2" max="2" step="0.01" value="0.5"></div>
+  <button id="startBtn">Start</button>
+  <button id="resetBtn">Reset</button>
+</div>
+
 <script>
-let dt=0.02,time=0;
-let params={}, trail=[], graphData=[];
-let sliders={};
+let state = {
+  m:1,k:10,c:0,x0:0.5,x:0.5,v:0,a:0,t:0,dt:1/60,running:false
+};
+let pxPerM = 150;
+let trail = [];
 
 function setup(){
-  createCanvas(800,500);
-  sliders.mass = createSlider(0.1,10,1,0.1); sliders.mass.position(10,10);
-  sliders.k = createSlider(0.1,50,10,0.1); sliders.k.position(10,40);
-  
-  resetSim();
+  createCanvas(windowWidth, windowHeight);
+  state.x = state.x0;
+  attachUI();
 }
 
-function resetSim(){
-  time=0; trail=[]; graphData=[];
-  params.mass=sliders.mass.value();
-  params.k=sliders.k.value();
-  params.x=100; params.vx=0;
-  params.ax=-params.k/params.mass*params.x;
-}
+function windowResized(){resizeCanvas(windowWidth, windowHeight);}
 
 function draw(){
-  background(240);
-  fill(0); text("Simple Harmonic Motion",10,80); text(`Mass:${params.mass} kg | k:${params.k}`,10,100);
-  
-  time+=dt;
-  params.ax=-params.k/params.mass*params.x;
-  params.vx+=params.ax*dt; params.x+=params.vx*dt;
-  
-  let px=width/2+params.x; let py=height/2;
-  trail.push([px,py]);
-  
-  noFill(); stroke(0,100); beginShape(); for(let p of trail) vertex(p[0],p[1]); endShape();
-  fill(0,150,200); stroke(0); ellipse(px,py,30,30);
-  stroke(0); line(width/2-200,py,width/2+200,py);
-  
-  graphData.push({time:time,pos:params.x,vel:params.vx,acc:params.ax});
-  drawGraphs();
+  background(244,246,255);
+  stepPhysics();
+  drawSpringMass();
+  drawTrail();
 }
 
-function drawGraphs(){
-  let gx=0, gy=height-140, gw=width, gh=120;
-  noFill(); stroke(200); rect(gx,gy,gw,gh);
-  
-  strokeWeight(2);
-  beginShape(); stroke(0,0,255); for(let d of graphData) vertex(gx+d.time*50,gy+gh-d.pos); endShape();
-  beginShape(); stroke(255,0,0); for(let d of graphData) vertex(gx+d.time*50,gy+gh-d.vel); endShape();
-  beginShape(); stroke(0,200,0); for(let d of graphData) vertex(gx+d.time*50,gy+gh-d.acc); endShape();
-  
-  strokeWeight(1); fill(0); text("Blue: Position | Red: Velocity | Green: Acceleration",10,height-150);
+// Physics
+function stepPhysics(){
+  if(state.running){
+    state.a = -(state.c*state.v + state.k*state.x)/state.m;
+    state.v += state.a*state.dt;
+    state.x += state.v*state.dt;
+    state.t += state.dt;
+    trail.push(state.x);
+    if(trail.length>width-100) trail.shift();
+  }
 }
+
+// Draw vertical reference and baseline
+function drawBackgroundLines(baseY){
+  stroke(180,180,180,150);
+  strokeWeight(1.5);
+  const cx = width/2;
+  for(let yy=50; yy<height-50; yy+=10) line(cx,yy,cx,yy+6); // dashed vertical line
+  stroke(200); line(50, baseY, width-50, baseY); // horizontal baseline
+}
+
+// Draw mass and realistic spring
+function drawSpringMass(){
+  const cx = width/2;
+  const baseY = height/2;
+  drawBackgroundLines(baseY);
+
+  const x_px = cx + state.x*pxPerM;
+  const startX = 80;
+  const endX = x_px - 40;
+
+  // Spring
+  const totalTurns = 18;
+  const coils = totalTurns*12;
+  const amp = 12;
+
+  stroke(80,140,220); strokeWeight(3); noFill();
+  beginShape();
+  for(let i=0;i<=coils;i++){
+    const t = i/coils;
+    const xi = startX + t*(endX-startX);
+    const phase = t*totalTurns*2*PI;
+    const yi = baseY + Math.sin(phase)*amp + Math.sin(phase*0.5)*2;
+    vertex(xi, yi);
+  }
+  endShape();
+
+  // Anchor
+  fill(50,90,150); noStroke(); ellipse(startX-8, baseY, 18, 18);
+
+  // Mass
+  fill(230,90,140); stroke(255); strokeWeight(2);
+  rect(x_px-40, baseY-22, 80, 60, 8);
+  noStroke(); fill(255); textAlign(CENTER,CENTER); textSize(14);
+  text('m', x_px, baseY+8);
+}
+
+// Draw amplitude trail below the spring
+function drawTrail(){
+  const baseY = height/2 + 100; // shifted downward
+  noFill(); stroke(60,140,220,150); strokeWeight(2);
+  beginShape();
+  for(let i=0;i<trail.length;i++){
+    const xp = width/2 - trail.length + i +1;
+    const yp = baseY + trail[i]*pxPerM*0.5; // reduce scale for trail
+    vertex(xp, yp);
+  }
+  endShape();
+}
+
+// UI controls
+function attachUI(){
+  const massSlider=document.getElementById('massSlider');
+  const kSlider=document.getElementById('kSlider');
+  const cSlider=document.getElementById('cSlider');
+  const x0Slider=document.getElementById('x0Slider');
+  const startBtn=document.getElementById('startBtn');
+  const resetBtn=document.getElementById('resetBtn');
+
+  function refreshLabels(){
+    document.getElementById('massVal').textContent=parseFloat(massSlider.value);
+    document.getElementById('kVal').textContent=parseFloat(kSlider.value);
+    document.getElementById('cVal').textContent=parseFloat(cSlider.value);
+    document.getElementById('x0Val').textContent=parseFloat(x0Slider.value);
+  }
+
+  [massSlider,kSlider,cSlider,x0Slider].forEach(s=>s.addEventListener('input',()=>{
+    state.m=parseFloat(massSlider.value);
+    state.k=parseFloat(kSlider.value);
+    state.c=parseFloat(cSlider.value);
+    state.x0=parseFloat(x0Slider.value);
+    if(!state.running) resetSim();
+    refreshLabels();
+  }));
+
+  startBtn.onclick=()=>{state.running=!state.running; startBtn.textContent=state.running?'Pause':'Start';};
+  resetBtn.onclick=()=>{state.running=false; startBtn.textContent='Start'; resetSim();};
+
+  window.addEventListener('keydown',(e)=>{
+    if(e.code==='Space'){e.preventDefault();state.running=!state.running;startBtn.textContent=state.running?'Pause':'Start';}
+    if(e.key==='r'||e.key==='R'){state.running=false;startBtn.textContent='Start';resetSim();}
+  });
+
+  refreshLabels();
+}
+
+function resetSim(){state.x=state.x0;state.v=0;state.a=0;state.t=0;trail=[];}
 </script>
+
 </body>
 </html>
