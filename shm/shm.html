@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SHM Simulation</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
+</head>
+<body>
+<script>
+let dt=0.02,time=0;
+let params={}, trail=[], graphData=[];
+let sliders={};
+
+function setup(){
+  createCanvas(800,500);
+  sliders.mass = createSlider(0.1,10,1,0.1); sliders.mass.position(10,10);
+  sliders.k = createSlider(0.1,50,10,0.1); sliders.k.position(10,40);
+  
+  resetSim();
+}
+
+function resetSim(){
+  time=0; trail=[]; graphData=[];
+  params.mass=sliders.mass.value();
+  params.k=sliders.k.value();
+  params.x=100; params.vx=0;
+  params.ax=-params.k/params.mass*params.x;
+}
+
+function draw(){
+  background(240);
+  fill(0); text("Simple Harmonic Motion",10,80); text(`Mass:${params.mass} kg | k:${params.k}`,10,100);
+  
+  time+=dt;
+  params.ax=-params.k/params.mass*params.x;
+  params.vx+=params.ax*dt; params.x+=params.vx*dt;
+  
+  let px=width/2+params.x; let py=height/2;
+  trail.push([px,py]);
+  
+  noFill(); stroke(0,100); beginShape(); for(let p of trail) vertex(p[0],p[1]); endShape();
+  fill(0,150,200); stroke(0); ellipse(px,py,30,30);
+  stroke(0); line(width/2-200,py,width/2+200,py);
+  
+  graphData.push({time:time,pos:params.x,vel:params.vx,acc:params.ax});
+  drawGraphs();
+}
+
+function drawGraphs(){
+  let gx=0, gy=height-140, gw=width, gh=120;
+  noFill(); stroke(200); rect(gx,gy,gw,gh);
+  
+  strokeWeight(2);
+  beginShape(); stroke(0,0,255); for(let d of graphData) vertex(gx+d.time*50,gy+gh-d.pos); endShape();
+  beginShape(); stroke(255,0,0); for(let d of graphData) vertex(gx+d.time*50,gy+gh-d.vel); endShape();
+  beginShape(); stroke(0,200,0); for(let d of graphData) vertex(gx+d.time*50,gy+gh-d.acc); endShape();
+  
+  strokeWeight(1); fill(0); text("Blue: Position | Red: Velocity | Green: Acceleration",10,height-150);
+}
+</script>
+</body>
+</html>

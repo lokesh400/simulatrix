@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vertical Spring SHM - Clean Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
+<style>
+html, body {
+  margin:0; padding:0; height:100%; font-family:sans-serif;
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  color:#fff;
+  overflow:hidden;
+  display:flex;
+}
+#controls {
+  width:300px;
+  padding:20px;
+  background: rgba(30,30,50,0.85);
+  border-radius:12px;
+  margin:10px;
+  display:flex;
+  flex-direction: column;
+  justify-content:flex-start;
+}
+#simulation {
+  flex:1;
+  margin:10px;
+  border-radius:12px;
+  overflow:hidden;
+  position:relative;
+}
+.slider-container div { margin-bottom:8px; }
+button {
+  margin:6px 0;
+  padding:6px 12px;
+  background:#ff6b6b;
+  color:white;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+  font-weight:bold;
+}
+button:hover { background:#ff4757; }
+canvas { display:block; }
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <div class="slider-container">
+    <div>Mass (m): <span id="massVal">1</span> kg</div>
+    <input type="range" id="massSlider" min="0.1" max="10" step="0.1" value="1"><br>
+
+    <div>Spring Constant (k): <span id="kVal">10</span></div>
+    <input type="range" id="kSlider" min="1" max="50" step="1" value="10"><br>
+
+    <div>Damping (c): <span id="cVal">0.1</span></div>
+    <input type="range" id="cSlider" min="0" max="1" step="0.01" value="0.1"><br>
+
+    <div>Initial Displacement (y0): <span id="y0Val">100</span> px</div>
+    <input type="range" id="y0Slider" min="-200" max="200" step="1" value="100"><br>
+
+    <div>Gravity (g): <span id="gVal">9.8</span></div>
+    <input type="range" id="gSlider" min="0" max="20" step="0.1" value="9.8"><br>
+
+    <button id="startBtn">Start</button>
+    <button id="stopBtn">Stop</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+
+  <canvas id="graphCanvas" width="280" height="200" style="background:rgba(255,255,255,0.1); margin-top:10px; border-radius:8px;"></canvas>
+</div>
+
+<div id="simulation"></div>
+
+<script>
+let m=1,k=10,c=0.1,g=9.8;
+let y=100,v=0,eqY;
+let dt=0.02;
+let running=false;
+let trail=[];
+let graphData=[];
+let particles=[];
+
+function setup(){
+  const simCanvas = createCanvas(400,600);
+  simCanvas.parent('simulation');
+  eqY = height/2 + (m*g/k)*20;
+  setupControls();
+
+  // background particles
+  for(let i=0;i<120;i++){
+    particles.push({x:random(width),y:random(height),r:random(2,5),speed:random(0.2,1),color:color(random(150,255),random(150,255),255,150)});
+  }
+}
+
+function draw(){
+  // Clear simulation canvas each frame
+  clear(); 
+  drawBackground();
+
+  if(running){
+    // Physics calculations
+    let a = -(k/m)*y - (c/m)*v + g;
+    v += a*dt; 
+    y += v*dt;
+    
+    // Update trail
+    let blockY = eqY + y;
+    trail.push(blockY);
+    if(trail.length>200) trail.shift();
+
+    // Update graphs
+    let KE = 0.5*m*v*v;
+    let PE = 0.5*k*y*y;
+    let TE = KE+PE;
+    graphData.push({KE,PE,TE});
+    if(graphData.length>280) graphData.shift();
+
+    drawGraphs();
+  }
+
+  let blockY = eqY + y;
+  drawHook();
+  drawRealisticSpring(blockY);
+  drawBlock(blockY);
+  drawTrail();  // semi-transparent trail
+  drawEquilibriumLine();
+  if(running) drawEnergy();
+}
+
+// --- aesthetic background ---
+function drawBackground(){
+  // floating particles
+  noStroke();
+  for(let p of particles){
+    fill(p.color);
+    ellipse(p.x,p.y,p.r);
+    p.y += p.speed;
+    if(p.y>height) p.y=0;
+  }
+}
+
+// --- spring & block ---
+function drawHook(){
+  stroke(255,200,50); strokeWeight(4);
+  line(width/2,50,width/2,100);
+  fill(255,200,50); ellipse(width/2,50,20,10);
+}
+
+function drawRealisticSpring(blockY){
+  stroke(255,150,50); strokeWeight(3); noFill();
+  let loops=15, pointsPerLoop=20, amplitude=15;
+  beginShape();
+  for(let i=0;i<loops*pointsPerLoop;i++){
+    let t=i/(loops*pointsPerLoop);
+    let angle=t*TWO_PI*loops;
+    let x=width/2 + amplitude*cos(angle);
+    let yPos=100 + t*(blockY-100);
+    vertex(x,yPos);
+  }
+  endShape();
+}
+
+function drawBlock(blockY){
+  fill(255,100,150); stroke(255); strokeWeight(2);
+  rect(width/2-30,blockY,60,30,5);
+}
+
+function drawTrail(){
+  noFill(); stroke(255,100,0,120);
+  beginShape();
+  for(let i=0;i<trail.length;i++){
+    vertex(width/2-100+i,trail[i]);
+  }
+  endShape();
+}
+
+function drawEquilibriumLine(){
+  stroke(0,255,0); strokeWeight(1);
+  line(50,eqY,width-50,eqY);
+  fill(0,255,0); noStroke();
+  text("Equilibrium",55,eqY-10);
+}
+
+function drawEnergy(){
+  let KE=0.5*m*v*v; let PE=0.5*k*y*y; let TE=KE+PE;
+  fill(255); noStroke();
+  text(`KE:${KE.toFixed(2)} PE:${PE.toFixed(2)} TE:${TE.toFixed(2)}`,10,20);
+}
+
+// --- controls ---
+function setupControls(){
+  const massSlider=document.getElementById('massSlider');
+  const kSlider=document.getElementById('kSlider');
+  const cSlider=document.getElementById('cSlider');
+  const y0Slider=document.getElementById('y0Slider');
+  const gSlider=document.getElementById('gSlider');
+  const massVal=document.getElementById('massVal');
+  const kVal=document.getElementById('kVal');
+  const cVal=document.getElementById('cVal');
+  const y0Val=document.getElementById('y0Val');
+  const gVal=document.getElementById('gVal');
+
+  function updateValues(){
+    massVal.innerText=massSlider.value;
+    kVal.innerText=kSlider.value;
+    cVal.innerText=cSlider.value;
+    y0Val.innerText=y0Slider.value;
+    gVal.innerText=gSlider.value;
+  }
+
+  function resetSystem(){
+    m=parseFloat(massSlider.value);
+    k=parseFloat(kSlider.value);
+    c=parseFloat(cSlider.value);
+    g=parseFloat(gSlider.value);
+    y=parseFloat(y0Slider.value); v=0;
+    eqY=height/2+(m*g/k)*20; trail=[]; graphData=[];
+    updateValues();
+  }
+
+  [massSlider,kSlider,cSlider,y0Slider,gSlider].forEach(s=>s.oninput=updateValues);
+  document.getElementById('resetBtn').onclick=resetSystem;
+  document.getElementById('startBtn').onclick=()=>{running=true;};
+  document.getElementById('stopBtn').onclick=()=>{running=false;};
+}
+
+// --- graphs ---
+function drawGraphs(){
+  const gc=document.getElementById('graphCanvas');
+  const ctx=gc.getContext('2d');
+  ctx.clearRect(0,0,gc.width,gc.height);
+  ctx.fillStyle='rgba(0,0,0,0.2)'; ctx.fillRect(0,0,gc.width,gc.height);
+
+  ctx.strokeStyle='red'; ctx.beginPath();
+  for(let i=0;i<graphData.length;i++){
+    let yPos=gc.height-graphData[i].KE*5;
+    if(i===0) ctx.moveTo(i,yPos); else ctx.lineTo(i,yPos);
+  }
+  ctx.stroke();
+
+  ctx.strokeStyle='blue'; ctx.beginPath();
+  for(let i=0;i<graphData.length;i++){
+    let yPos=gc.height-graphData[i].PE*5;
+    if(i===0) ctx.moveTo(i,yPos); else ctx.lineTo(i,yPos);
+  }
+  ctx.stroke();
+
+  ctx.strokeStyle='green'; ctx.beginPath();
+  for(let i=0;i<graphData.length;i++){
+    let yPos=gc.height-graphData[i].TE*5;
+    if(i===0) ctx.moveTo(i,yPos); else ctx.lineTo(i,yPos);
+  }
+  ctx.stroke();
+
+  ctx.fillStyle='white'; ctx.fillText('KE:red PE:blue TE:green',10,15);
+}
+</script>
+</body>
+</html>

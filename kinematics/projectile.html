@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Projectile Motion with Velocity Vectors</title>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;background:linear-gradient(135deg,#6a11cb,#2575fc);color:#fff;font-family:sans-serif;}
+#controls{
+  position:absolute;top:10px;left:10px;width:250px;background:rgba(0,0,0,0.7);padding:15px;border-radius:12px;
+}
+#parameters{
+  position:absolute;top:10px;right:10px;width:250px;background:rgba(0,0,0,0.7);padding:15px;border-radius:12px;
+}
+input{width:100%;}
+button{width:48%;margin-top:5px;background:#ff6b6b;color:#fff;border:none;padding:5px;border-radius:5px;cursor:pointer;font-weight:bold;}
+button:hover{background:#ff4757;}
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <label>Initial Speed (v₀): <span id="v0Val">50</span> m/s</label><br>
+  <input type="range" id="v0" min="10" max="100" value="50"><br>
+
+  <label>Angle (θ): <span id="angleVal">45</span>°</label><br>
+  <input type="range" id="angle" min="-90" max="90" value="45"><br>
+
+  <label>Initial Height (h₀): <span id="h0Val">20</span> m</label><br>
+  <input type="range" id="h0" min="0" max="100" value="20"><br>
+
+  <button id="start">Start</button>
+  <button id="reset">Reset</button>
+</div>
+
+<div id="parameters">
+  <div>x: <span id="xVal">0</span> m</div>
+  <div>y: <span id="yVal">0</span> m</div>
+  <div>Speed: <span id="speedVal">0</span> m/s</div>
+  <div>Angle: <span id="angleDisplay">0</span>°</div>
+  <div>
+    <input type="checkbox" id="showVx"> Show Vx<br>
+    <input type="checkbox" id="showVy"> Show Vy
+  </div>
+  <div>Vx: <span id="vxVal">0</span></div>
+  <div>Vy: <span id="vyVal">0</span></div>
+</div>
+
+<script>
+let v0=50, angle=45, h0=20;
+let x=0, y=0, vx=0, vy=0;
+let dt=0.02, running=false;
+let trail=[];
+let scaleFactor=5;
+let ground=50;
+
+function setup(){
+  createCanvas(window.innerWidth, window.innerHeight);
+  resetProjectile();
+
+  document.getElementById('v0').oninput = e=>{
+    v0=parseFloat(e.target.value);
+    document.getElementById('v0Val').innerText=v0;
+    resetProjectile();
+  };
+  document.getElementById('angle').oninput = e=>{
+    angle=parseFloat(e.target.value);
+    document.getElementById('angleVal').innerText=angle;
+    resetProjectile();
+  };
+  document.getElementById('h0').oninput = e=>{
+    h0=parseFloat(e.target.value);
+    document.getElementById('h0Val').innerText=h0;
+    resetProjectile();
+  };
+  document.getElementById('start').onclick = ()=>{running=true;};
+  document.getElementById('reset').onclick = ()=>{resetProjectile();};
+}
+
+function resetProjectile(){
+  x=100; y=h0; trail=[];
+  let rad = angle * Math.PI/180;
+  vx = v0*Math.cos(rad);
+  vy = v0*Math.sin(rad);
+  running=false;
+  updateParameters();
+}
+
+function draw(){
+  background(30,30,60);
+
+  // Ground
+  fill(50,200,50); noStroke();
+  rect(0, height-ground, width, ground);
+
+  // Reference line
+  stroke(255,255,255,150); strokeWeight(1);
+  line(0, height - ground - h0*scaleFactor, width, height - ground - h0*scaleFactor);
+
+  // Tower / stand
+  fill(120,80,50); noStroke();
+  rect(x*scaleFactor-10, height - ground - h0*scaleFactor, 20, h0*scaleFactor);
+
+  if(running){
+    x += vx*dt;
+    y += vy*dt;
+    vy -= 9.8*dt;
+
+    if(y<0){ y=0; vy=0; vx=0; running=false;}
+
+    trail.push({x:x, y:y});
+    if(trail.length>500) trail.shift();
+  }
+
+  drawTrail();
+  drawProjectile();
+  drawInitialAngleArrow();
+  drawVelocityVectors();
+  updateParameters();
+}
+
+function drawProjectile(){
+  fill(255,0,0); stroke(255);
+  ellipse(x*scaleFactor, height - ground - y*scaleFactor, 20, 20);
+}
+
+function drawTrail(){
+  noFill(); stroke(255,150,0); strokeWeight(2);
+  beginShape();
+  for(let p of trail) vertex(p.x*scaleFactor, height - ground - p.y*scaleFactor);
+  endShape();
+}
+
+function drawInitialAngleArrow(){
+  if(!running){
+    let rad = angle*Math.PI/180;
+    let startX = x*scaleFactor;
+    let startY = height - ground - y*scaleFactor;
+    let len = 50;
+    stroke(255,255,0); strokeWeight(3);
+    line(startX, startY, startX + len*Math.cos(rad), startY - len*Math.sin(rad));
+
+    fill(255,255,0); noStroke();
+    let arrowX = startX + len*Math.cos(rad);
+    let arrowY = startY - len*Math.sin(rad);
+    let size = 7;
+    triangle(
+      arrowX, arrowY,
+      arrowX - size*Math.sin(rad), arrowY - size*Math.cos(rad),
+      arrowX + size*Math.sin(rad), arrowY + size*Math.cos(rad)
+    );
+  }
+}
+
+function drawVelocityVectors(){
+  let startX = x*scaleFactor;
+  let startY = height - ground - y*scaleFactor;
+  let scaleV = 5; // scale factor for drawing
+
+  if(document.getElementById('showVx').checked){
+    stroke(0,150,255); strokeWeight(3);
+    line(startX, startY, startX + vx*scaleV, startY);
+    fill(0,150,255); noStroke();
+    triangle(startX + vx*scaleV, startY,
+             startX + vx*scaleV - 5, startY - 3,
+             startX + vx*scaleV - 5, startY + 3);
+  }
+  if(document.getElementById('showVy').checked){
+    stroke(0,255,100); strokeWeight(3);
+    line(startX, startY, startX, startY - vy*scaleV);
+    fill(0,255,100); noStroke();
+    triangle(startX, startY - vy*scaleV,
+             startX - 3, startY - vy*scaleV + 5,
+             startX + 3, startY - vy*scaleV + 5);
+  }
+}
+
+function updateParameters(){
+  document.getElementById('xVal').innerText = x.toFixed(1);
+  document.getElementById('yVal').innerText = y.toFixed(1);
+  let speed = Math.sqrt(vx*vx + vy*vy);
+  document.getElementById('speedVal').innerText = speed.toFixed(1);
+  document.getElementById('angleDisplay').innerText = angle.toFixed(1);
+
+  if(document.getElementById('showVx').checked) document.getElementById('vxVal').innerText = vx.toFixed(2); 
+  else document.getElementById('vxVal').innerText = '--';
+  if(document.getElementById('showVy').checked) document.getElementById('vyVal').innerText = vy.toFixed(2);
+  else document.getElementById('vyVal').innerText = '--';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D Coil-Magnet Induction Simulation</title>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;background:linear-gradient(135deg,#0f2027,#2c5364);}
+#controls{
+  position:absolute;top:10px;left:10px;width:280px;background:rgba(0,0,0,0.6);padding:15px;border-radius:12px;color:#fff;font-family:sans-serif;
+}
+#parameters{
+  position:absolute;top:10px;right:10px;width:280px;background:rgba(0,0,0,0.6);padding:15px;border-radius:12px;color:#fff;font-family:sans-serif;
+}
+button,input,select{margin-top:5px;width:100%;padding:5px;border-radius:5px;}
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <button id="toggleAuto">Toggle Auto Motion</button>
+  <label><input type="checkbox" id="moveMagnet"> Move Magnet Instead of Coil</label><br>
+  <input type="range" id="speed" min="10" max="300" value="100">
+  <label>Oscillation Speed</label><br>
+  <input type="range" id="turns" min="3" max="20" value="8">
+  <label>Coil Turns</label>
+</div>
+
+<div id="parameters">
+  <div>Distance: <span id="distVal">0</span> px</div>
+  <div>Induced EMF: <span id="emfVal">0</span> mV</div>
+  <div>Velocity: <span id="velVal">0</span> px/s</div>
+</div>
+
+<script>
+let coilX, coilY;
+let magnetX, magnetY;
+let coilWidth = 120, coilHeight = 60;
+let prevPos;
+let autoMotion = false;
+let t = 0;
+let speed = 100;
+let turns = 8;
+let emf = 0;
+let vel = 0;
+let smoothEMF = 0;
+let movingMagnet = false;
+
+function setup(){
+  createCanvas(window.innerWidth, window.innerHeight);
+  coilX = width/2 - 100;
+  coilY = height/2;
+  magnetX = width/2 + 100;
+  magnetY = height/2;
+  prevPos = coilX;
+
+  document.getElementById('toggleAuto').onclick = ()=>{autoMotion=!autoMotion;}
+  document.getElementById('speed').oninput = e=>{speed=parseFloat(e.target.value);}
+  document.getElementById('turns').oninput = e=>{turns=parseInt(e.target.value);}
+  document.getElementById('moveMagnet').onchange = e=>{
+    movingMagnet = e.target.checked;
+    if(movingMagnet) prevPos = magnetX; else prevPos = coilX;
+  }
+}
+
+function draw(){
+  background(30,30,50);
+
+  // Coil motion
+  if(autoMotion){
+    t += deltaTime*0.001;
+    let moveAmount = sin(t*speed*0.01)*200;
+    if(movingMagnet){
+      magnetX = width/2 + moveAmount;
+    }else{
+      coilX = width/2 + moveAmount;
+    }
+  }
+
+  // Velocity & EMF
+  let currentPos = movingMagnet ? magnetX : coilX;
+  vel = (currentPos - prevPos)/(deltaTime*0.001);
+  prevPos = currentPos;
+  emf = -vel*0.05;
+  smoothEMF = smoothEMF*0.9 + emf*0.1;
+
+  // Draw magnet with 3D shading
+  drawMagnet(magnetX, magnetY);
+
+  // Draw sleek 3D helical coil
+  drawHelicalCoil(coilX, coilY, coilWidth, coilHeight, turns);
+
+  // Current arrows along coil
+  drawCurrentArrows(coilX, coilY, turns, smoothEMF);
+
+  // Bulb with realistic wires
+  drawBulb(coilX, coilY, smoothEMF);
+
+  // Mouse drag
+  if(mouseIsPressed && mouseY>coilY-50 && mouseY<coilY+50){
+    if(movingMagnet){
+      magnetX = mouseX;
+    }else{
+      coilX = mouseX;
+    }
+  }
+
+  // Update parameters
+  document.getElementById('distVal').innerText = abs(coilX - magnetX).toFixed(1);
+  document.getElementById('emfVal').innerText = smoothEMF.toFixed(2);
+  document.getElementById('velVal').innerText = vel.toFixed(1);
+}
+
+function drawHelicalCoil(x, y, w, h, turns){
+  strokeWeight(3);
+  for(let i=0;i<turns;i++){
+    let hue = map(i,0,turns-1,100,200);
+    stroke(hue,255,200);
+    noFill();
+    beginShape();
+    for(let a=0;a<TWO_PI;a+=0.1){
+      let px = x + cos(a)*(w+i*6)/2;
+      let py = y + sin(a)*(h+i*4)/2 + i*6;
+      vertex(px, py);
+    }
+    endShape();
+  }
+}
+
+function drawCurrentArrows(x, y, turns, emf){
+  stroke(255,255,0); fill(255,255,0);
+  let dir = emf>0 ? 1 : -1;
+  for(let i=0;i<turns;i+=2){
+    let angle = map(i,0,turns-1,-PI/6,PI/6);
+    let len = map(abs(emf),0,5,10,30,true);
+    line(x, y + i*5, x + dir*len*cos(angle), y + i*5 + dir*len*sin(angle));
+    triangle(x + dir*len*cos(angle), y + i*5 + dir*len*sin(angle),
+             x + dir*len*cos(angle)-3, y + i*5 + dir*len*sin(angle)-3,
+             x + dir*len*cos(angle)-3, y + i*5 + dir*len*sin(angle)+3);
+  }
+}
+
+function drawMagnet(x,y){
+  stroke(255); strokeWeight(2);
+  fill(255,0,0);
+  rect(x-20, y-30, 40, 60,8);
+  fill(255); textAlign(CENTER,CENTER); text("N", x, y-10); text("S", x, y+10);
+}
+
+function drawBulb(coilX, coilY, emf){
+  let brightness = map(abs(emf),0,5,50,255,true);
+  let bulbX = coilX + 200;
+  let bulbY = coilY;
+  fill(255,255,0,brightness); stroke(255); strokeWeight(2);
+  ellipse(bulbX, bulbY, 40,40);
+  stroke(255); strokeWeight(2);
+  line(coilX+20, coilY, bulbX-20, bulbY);
+  line(coilX-20, coilY, bulbX-20, bulbY);
+}
+</script>
+</body>
+</html>

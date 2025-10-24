@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Free Fall Simulation</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
+</head>
+<body>
+<script>
+let dt = 0.02, time = 0;
+let params = {}, trail = [], graphData = [];
+let sliders = {};
+
+function setup() {
+  createCanvas(800, 500);
+  
+  // Sliders
+  sliders.mass = createSlider(0.1, 10, 1, 0.1); sliders.mass.position(10, 10);
+  sliders.gravity = createSlider(0.1, 20, 9.8, 0.1); sliders.gravity.position(10, 40);
+  
+  resetSim();
+}
+
+function resetSim() {
+  time = 0;
+  trail = [];
+  graphData = [];
+  params.mass = sliders.mass.value();
+  params.g = sliders.gravity.value();
+  params.y = 0;
+  params.vy = 0;
+  params.ay = params.g;
+}
+
+function draw() {
+  background(240);
+  fill(0);
+  text("Free Fall Simulation", 10, 80);
+  text("Mass: "+params.mass+" kg | Gravity: "+params.g+" m/s²", 10, 100);
+  
+  time += dt;
+  // Physics
+  params.vy += params.ay*dt;
+  params.y += params.vy*dt;
+  
+  let px = width/2;
+  let py = height - 100 - params.y*5;
+  trail.push([px, py]);
+  
+  // Draw trail
+  noFill(); stroke(0,100);
+  beginShape(); for(let p of trail) vertex(p[0], p[1]); endShape();
+  
+  // Draw ball
+  fill(0,150,200); stroke(0); ellipse(px, py, 30, 30);
+  
+  // Ground
+  stroke(100); line(0, height-100, width, height-100);
+  
+  // Graph
+  graphData.push({time: time, pos: params.y, vel: params.vy, acc: params.ay});
+  drawGraphs();
+}
+
+function drawGraphs() {
+  let gx=0, gy=height-140, gw=width, gh=120;
+  noFill(); stroke(200); rect(gx, gy, gw, gh);
+  
+  strokeWeight(2);
+  beginShape(); stroke(0,0,255); // Position
+  for(let d of graphData) vertex(gx + d.time*50, gy + gh - d.pos*5); endShape();
+  
+  beginShape(); stroke(255,0,0); // Velocity
+  for(let d of graphData) vertex(gx + d.time*50, gy + gh - d.vel*5); endShape();
+  
+  beginShape(); stroke(0,200,0); // Acceleration
+  for(let d of graphData) vertex(gx + d.time*50, gy + gh - d.acc*5); endShape();
+  
+  strokeWeight(1);
+  fill(0); text("Blue: Position | Red: Velocity | Green: Acceleration", 10, height-150);
+}
+</script>
+</body>
+</html>
