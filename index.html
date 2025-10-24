@@ -3,51 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-        crossorigin="anonymous">
-    <script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
+    <title>Simulatrix - Interactive Physics Simulations</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --background-color: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--background-color);
+            color: var(--secondary-color);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 4rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .category-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .simulation-link {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            display: block;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s ease;
+        }
+
+        .simulation-link:hover {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+        }
+
+        .simulation-link i {
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .nav-link {
+            color: white !important;
+            opacity: 0.9;
+        }
+
+        .nav-link:hover {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button"
-            data-bs-toggle="dropdown" aria-expanded="false">
-            Kinematics Simulations
-        </button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="./kinematics/freefall.html">Free Fall</a></li>
-            <li><a class="dropdown-item" href="./kinematics/projectile.html">Projectile Motion</a></li>
-            <li><a class="dropdown-item" href="./shm/shm.html">Simple Harmonic Motion</a></li>
-        </ul>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--secondary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-atom me-2"></i>
+                Simulatrix
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-home"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#simulations"><i class="fas fa-play"></i> Simulations</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="container text-center">
+            <h1 class="display-4 mb-4">Welcome to Simulatrix</h1>
+            <p class="lead mb-4">Explore physics concepts through interactive 3D simulations</p>
+            <a href="#simulations" class="btn btn-light btn-lg">
+                <i class="fas fa-play-circle me-2"></i>Start Learning
+            </a>
+        </div>
     </div>
 
-        <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button"
-            data-bs-toggle="dropdown" aria-expanded="false">
-            SHM Simulations
-        </button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="./shm/shm.html">Simple Shm</a></li>
-            <li><a class="dropdown-item" href="./shm/vertical-shm.html">Vertical Shm</a></li>
-        </ul>
-    </div>
+    <!-- Simulations Section -->
+    <section id="simulations" class="container py-5">
+        <h2 class="text-center mb-5">Interactive Simulations</h2>
+        
+        <div class="row">
+            <!-- Kinematics Category -->
+            <div class="col-md-4">
+                <div class="category-card">
+                    <div class="category-header">
+                        <i class="fas fa-running me-2"></i>
+                        Kinematics
+                    </div>
+                    <div class="category-content">
+                        <a href="./kinematics/freefall.html" class="simulation-link">
+                            <i class="fas fa-arrow-down"></i>Free Fall
+                        </a>
+                        <a href="./kinematics/projectile.html" class="simulation-link">
+                            <i class="fas fa-bullseye"></i>Projectile Motion
+                        </a>
+                        <a href="./kinematics/circular.html" class="simulation-link">
+                            <i class="fas fa-sync"></i>Circular Motion
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-            <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button"
-            data-bs-toggle="dropdown" aria-expanded="false">
-            Magnetism Simulations
-        </button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="./magnetism/induction.html">Magnetic Induction</a></li>
-            <li><a class="dropdown-item" href="./magnetism/mutual-inductance.html">Mutual Inductance</a></li>
-            <li><a class="dropdown-item" href="./magnetism/lenz-law.html">Lenz's Law</a></li>
-        </ul>
-    </div>
+            <!-- SHM Category -->
+            <div class="col-md-4">
+                <div class="category-card">
+                    <div class="category-header">
+                        <i class="fas fa-wave-square me-2"></i>
+                        Simple Harmonic Motion
+                    </div>
+                    <div class="category-content">
+                        <a href="./shm/shm.html" class="simulation-link">
+                            <i class="fas fa-infinity"></i>Simple SHM
+                        </a>
+                        <a href="./shm/vertical-shm.html" class="simulation-link">
+                            <i class="fas fa-arrows-alt-v"></i>Vertical SHM
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Magnetism Category -->
+            <div class="col-md-4">
+                <div class="category-card">
+                    <div class="category-header">
+                        <i class="fas fa-magnet me-2"></i>
+                        Magnetism
+                    </div>
+                    <div class="category-content">
+                        <a href="./magnetism/induction.html" class="simulation-link">
+                            <i class="fas fa-bolt"></i>Magnetic Induction
+                        </a>
+                        <a href="./magnetism/mutual-inductance.html" class="simulation-link">
+                            <i class="fas fa-exchange-alt"></i>Mutual Inductance
+                        </a>
+                        <a href="./magnetism/lenz-law.html" class="simulation-link">
+                            <i class="fas fa-equals"></i>Lenz's Law
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container text-center">
+            <p>© 2025 Simulatrix
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

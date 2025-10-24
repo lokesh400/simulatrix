@@ -2,83 +2,305 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Free Fall Simulation</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Simulatrix — Free Fall</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f7fb;--card:#ffffff;--accent:#4a90e2;--muted:#6b7280}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+    body{background:linear-gradient(180deg,#eef6ff 0%,var(--bg) 60%);color:#102a43}
+    .container{max-width:1100px;margin:32px auto;padding:20px}
+    .top-row{display:flex;gap:20px;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .title {display:flex;align-items:center;gap:12px}
+    .title h1{margin:0;font-weight:700}
+    .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(16,42,67,0.08)}
+    .controls{width:320px}
+    .control-row{display:flex;align-items:center;justify-content:space-between;margin:8px 0}
+    label{font-size:13px;color:var(--muted)}
+    .small{font-size:13px;color:var(--muted)}
+    .btn{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    .btn.secondary{background:#6b7280}
+    .readouts{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .readout{background:#f7fbff;padding:8px;border-radius:8px;min-width:110px}
+    #canvas-wrap{flex:1;min-height:420px;display:flex;align-items:center;justify-content:center}
+    .footer-note{font-size:13px;color:var(--muted);margin-top:12px}
+    @media(max-width:900px){.top-row{flex-direction:column;align-items:stretch}.controls{width:100%}}
+  </style>
 </head>
 <body>
-<script>
-let dt = 0.02, time = 0;
-let params = {}, trail = [], graphData = [];
-let sliders = {};
+  <div class="container">
+    <div class="top-row">
+      <div class="title">
+        <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px">
+          <i class="fas fa-parachute-box fa-2x" style="color:var(--accent)"></i>
+          <div>
+            <h1>Free Fall</h1>
+            <div class="small">Explore gravity, air resistance and motion — live</div>
+          </div>
+        </div>
+      </div>
 
-function setup() {
-  createCanvas(800, 500);
-  
-  // Sliders
-  sliders.mass = createSlider(0.1, 10, 1, 0.1); sliders.mass.position(10, 10);
-  sliders.gravity = createSlider(0.1, 20, 9.8, 0.1); sliders.gravity.position(10, 40);
-  
-  resetSim();
-}
+      <div class="card controls">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <strong>Controls</strong>
+          <div>
+            <button id="startBtn" class="btn">Start</button>
+            <button id="resetBtn" class="btn secondary">Reset</button>
+          </div>
+        </div>
 
-function resetSim() {
-  time = 0;
-  trail = [];
-  graphData = [];
-  params.mass = sliders.mass.value();
-  params.g = sliders.gravity.value();
-  params.y = 0;
-  params.vy = 0;
-  params.ay = params.g;
-}
+        <div class="control-row">
+          <label>Mass (kg)</label>
+          <input id="mass" type="range" min="0.1" max="10" step="0.1" value="1">
+        </div>
+        <div class="control-row">
+          <label>Initial Height (m)</label>
+          <input id="height" type="range" min="1" max="50" step="0.5" value="20">
+        </div>
+        <div class="control-row">
+          <label>Gravity (m/s²)</label>
+          <input id="gravity" type="range" min="1" max="20" step="0.1" value="9.8">
+        </div>
+        <div class="control-row">
+          <label>Air Resistance</label>
+          <select id="dragModel">
+            <option value="none">None</option>
+            <option value="linear">Linear (c·v)</option>
+            <option value="quadratic">Quadratic (c·v²)</option>
+          </select>
+        </div>
+        <div class="control-row">
+          <label>Drag Coefficient</label>
+          <input id="dragCoef" type="range" min="0" max="2" step="0.01" value="0.15">
+        </div>
 
-function draw() {
-  background(240);
-  fill(0);
-  text("Free Fall Simulation", 10, 80);
-  text("Mass: "+params.mass+" kg | Gravity: "+params.g+" m/s²", 10, 100);
-  
-  time += dt;
-  // Physics
-  params.vy += params.ay*dt;
-  params.y += params.vy*dt;
-  
-  let px = width/2;
-  let py = height - 100 - params.y*5;
-  trail.push([px, py]);
-  
-  // Draw trail
-  noFill(); stroke(0,100);
-  beginShape(); for(let p of trail) vertex(p[0], p[1]); endShape();
-  
-  // Draw ball
-  fill(0,150,200); stroke(0); ellipse(px, py, 30, 30);
-  
-  // Ground
-  stroke(100); line(0, height-100, width, height-100);
-  
-  // Graph
-  graphData.push({time: time, pos: params.y, vel: params.vy, acc: params.ay});
-  drawGraphs();
-}
+        <div class="readouts">
+          <div class="readout">Time: <span id="tVal">0.00</span> s</div>
+          <div class="readout">Height: <span id="yVal">0.0</span> m</div>
+          <div class="readout">Velocity: <span id="vVal">0.0</span> m/s</div>
+          <div class="readout">Acceleration: <span id="aVal">0.0</span> m/s²</div>
+        </div>
+      </div>
+    </div>
 
-function drawGraphs() {
-  let gx=0, gy=height-140, gw=width, gh=120;
-  noFill(); stroke(200); rect(gx, gy, gw, gh);
-  
-  strokeWeight(2);
-  beginShape(); stroke(0,0,255); // Position
-  for(let d of graphData) vertex(gx + d.time*50, gy + gh - d.pos*5); endShape();
-  
-  beginShape(); stroke(255,0,0); // Velocity
-  for(let d of graphData) vertex(gx + d.time*50, gy + gh - d.vel*5); endShape();
-  
-  beginShape(); stroke(0,200,0); // Acceleration
-  for(let d of graphData) vertex(gx + d.time*50, gy + gh - d.acc*5); endShape();
-  
-  strokeWeight(1);
-  fill(0); text("Blue: Position | Red: Velocity | Green: Acceleration", 10, height-150);
-}
-</script>
+    <div style="display:flex;gap:20px;align-items:flex-start">
+      <div id="canvas-wrap" class="card">
+        <!-- p5 canvas will be injected here -->
+      </div>
+
+      <div style="width:260px">
+        <div class="card" style="padding:14px">
+          <strong>Explanation</strong>
+          <p class="small">An object in free fall accelerates downward due to gravity. With air resistance, the net acceleration reduces and may reach terminal velocity. Use the controls to experiment.</p>
+          <div class="footer-note">Tip: Try increasing drag coefficient and switching to quadratic drag for realistic high-speed behavior.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Simulation state
+    let sim = {
+      running: false,
+      t: 0,
+      dt: 0.016, // 60 FPS
+      mass: 1,
+      y0: 20,
+      y: 0,
+      v: 0,
+      a: 0,
+      g: 9.8,
+      dragModel: 'none',
+      dragCoef: 0.15,
+      bounce: false
+    };
+
+    // p5 sketch
+    const s = (p) => {
+      let canvasW = 800, canvasH = 500;
+      let scale = 5; // pixels per meter (updated on resize)
+      let groundY;
+      let trail = [];
+
+      p.setup = () => {
+        const container = document.getElementById('canvas-wrap');
+        const cnv = p.createCanvas(canvasW, canvasH);
+        cnv.parent(container);
+        p.pixelDensity(1);
+        p.noStroke();
+        resizeCanvas();
+        resetSim();
+        attachDOM();
+      };
+
+      function resizeCanvas(){
+        const container = document.getElementById('canvas-wrap');
+        const rect = container.getBoundingClientRect();
+        p.resizeCanvas(Math.max(400, rect.width-20), 520);
+        scale = p.width / 40; // ~40 meters across
+        groundY = p.height - 80;
+      }
+
+      p.windowResized = () => resizeCanvas();
+
+      function resetSim(){
+        sim.t = 0;
+        sim.y = sim.y0;
+        sim.v = 0;
+        sim.a = sim.g;
+        trail = [];
+      }
+
+      p.draw = () => {
+        // physics update only when running
+        if (sim.running) {
+          // compute drag force
+          let drag = 0;
+          if (sim.dragModel === 'linear') {
+            drag = sim.dragCoef * sim.v; // c * v
+          } else if (sim.dragModel === 'quadratic') {
+            drag = sim.dragCoef * sim.v * Math.abs(sim.v); // c * v * |v|
+          }
+
+          // Net acceleration: downward positive
+          sim.a = sim.g - (drag / sim.mass);
+          // integrate (semi-implicit Euler for stability)
+          sim.v += sim.a * sim.dt;
+          sim.y -= sim.v * sim.dt; // screen y decreases as object goes up
+          sim.t += sim.dt;
+
+          // collision with ground
+          if (sim.y <= 0) {
+            sim.y = 0;
+            sim.v = 0;
+            sim.running = false;
+          }
+
+          // push to trail
+          trail.push({y: sim.y, v: sim.v});
+          if (trail.length > 200) trail.shift();
+        }
+
+        drawScene(p, trail);
+        updateReadouts();
+      };
+
+      function drawScene(p, trail){
+        p.clear();
+        p.background(238,246,255);
+
+        // draw sky gradient
+        for (let i=0;i<p.height;i+=4){
+          p.noStroke();
+          let c = p.lerpColor(p.color(220,240,255), p.color(255,255,255), i/p.height);
+          p.fill(c);
+          p.rect(0,i,p.width,4);
+        }
+
+        // ground
+        p.noStroke();
+        p.fill(90,80,70);
+        p.rect(0, groundY, p.width, p.height-groundY);
+        // draw subtle ground texture
+        p.push();
+        p.translate(0, groundY);
+        p.fill(120,110,100,30);
+        for (let x=0;x<p.width;x+=12) p.ellipse(x+6, 6 + (x%24)*0.05, 8,2);
+        p.pop();
+
+        // compute pixel position of ball
+        const px = p.width/2;
+        const py = p.map(sim.y, sim.y0, 0, 60, groundY-10);
+
+        // shadow (scale with height)
+        const shadowScale = p.map(sim.y, 0, sim.y0, 1.0, 0.25);
+        p.push();
+        p.translate(px, groundY+6);
+        p.fill(0,50);
+        p.ellipse(0,0,60*shadowScale,18*shadowScale);
+        p.pop();
+
+        // trail (fading)
+        p.noFill();
+        for (let i=0;i<trail.length;i++){
+          const t = trail[i];
+          const alpha = p.map(i,0,trail.length,30,200);
+          p.stroke(74,144,226,alpha);
+          p.strokeWeight(2);
+          const ypix = p.map(t.y, sim.y0, 0, 60, groundY-10);
+          p.line(px-12, ypix, px+12, ypix);
+        }
+
+        // ball
+        p.noStroke();
+        p.fill(60,140,200);
+        p.ellipse(px, py, 44,44);
+
+        // highlight
+        p.fill(255,255,255,120);
+        p.ellipse(px-10, py-10, 18,10);
+
+        // ground line
+        p.stroke(30); p.strokeWeight(1);
+        p.line(0, groundY, p.width, groundY);
+      }
+
+      function updateReadouts(){
+        document.getElementById('tVal').textContent = sim.t.toFixed(2);
+        document.getElementById('yVal').textContent = sim.y.toFixed(2);
+        document.getElementById('vVal').textContent = sim.v.toFixed(2);
+        document.getElementById('aVal').textContent = sim.a.toFixed(2);
+      }
+
+      function attachDOM(){
+        // DOM elements
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const mass = document.getElementById('mass');
+        const height = document.getElementById('height');
+        const gravity = document.getElementById('gravity');
+        const dragModel = document.getElementById('dragModel');
+        const dragCoef = document.getElementById('dragCoef');
+
+        startBtn.onclick = () => {
+          sim.mass = parseFloat(mass.value);
+          sim.y0 = parseFloat(height.value);
+          sim.y = sim.y0;
+          sim.g = parseFloat(gravity.value);
+          sim.dragModel = dragModel.value;
+          sim.dragCoef = parseFloat(dragCoef.value);
+          sim.running = !sim.running;
+          startBtn.textContent = sim.running ? 'Pause' : 'Start';
+        };
+
+        resetBtn.onclick = () => {
+          sim.running = false;
+          startBtn.textContent = 'Start';
+          sim.mass = parseFloat(mass.value);
+          sim.y0 = parseFloat(height.value);
+          sim.g = parseFloat(gravity.value);
+          sim.dragModel = dragModel.value;
+          sim.dragCoef = parseFloat(dragCoef.value);
+          sim.t = 0; sim.v = 0; sim.a = sim.g; sim.y = sim.y0;
+        };
+
+        // live preview when sliders change while paused
+        [mass, height, gravity, dragCoef, dragModel].forEach(el => el.addEventListener('input', ()=>{
+          if(!sim.running){
+            sim.mass = parseFloat(mass.value);
+            sim.y0 = parseFloat(height.value);
+            sim.y = sim.y0;
+            sim.g = parseFloat(gravity.value);
+            sim.dragCoef = parseFloat(dragCoef.value);
+            sim.dragModel = dragModel.value;
+          }
+        }));
+      }
+    };
+
+    new p5(s);
+  </script>
 </body>
 </html>
