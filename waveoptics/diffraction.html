@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Young's Double-Slit Simulator (Fully Fledged)</title>
+<style>
+  :root{
+    --bg: #0b1020;
+    --panel: #0f1724;
+    --muted: #9aa6c1;
+    --accent: #55a6ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: radial-gradient(1200px 600px at 10% 10%, #071024 0%, var(--bg) 35%), var(--bg);
+    color: #e6eef8;
+    -webkit-font-smoothing:antialiased;
+    height: 100vh;
+    overflow: hidden;
+  }
+  header {
+    padding: 14px 18px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  header h1 { font-size:18px; margin:0; letter-spacing:0.2px; }
+  main {
+    display: grid;
+    grid-template-columns: 360px 1fr 420px;
+    gap: 14px;
+    padding: 16px;
+    height: calc(100vh - 64px);
+  }
+  .panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+    border: 1px solid rgba(255,255,255,0.03);
+    display: flex;
+    flex-direction: column;
+  }
+  .controls label { display:block; font-size:12px; color:var(--muted); margin-top:8px; }
+  .controls input[type="range"]{ width:100%; }
+  .controls input[type="number"], .controls select {
+    width:100%; padding:6px 8px; margin-top:6px; border-radius:6px;
+    border:1px solid rgba(255,255,255,0.04); background: rgba(255,255,255,0.02); color:inherit;
+  }
+  .row { display:flex; gap:8px; align-items:center; }
+  button { background:var(--accent); color: #031226; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+  button.ghost { background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted); font-weight:600; }
+  #renderArea { display:flex; flex-direction:column; gap:8px; height:100%; }
+  canvas { width:100%; border-radius:10px; background: #05060a; display:block; }
+  .small { font-size:12px; color:var(--muted); }
+  .stats { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .stat { background: rgba(255,255,255,0.02); padding:8px 10px; border-radius:8px; font-size:13px; color:var(--muted); }
+  footer { padding:10px 18px; font-size:13px; color:var(--muted); }
+  a { color: var(--accent); }
+  /* small responsive tweak */
+  @media (max-width: 1100px){
+    main { grid-template-columns: 1fr; grid-auto-rows: min-content; height: auto; padding-bottom: 40px; }
+    .panel { margin-bottom: 12px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Young’s Double-Slit Interference — Interactive Simulator</h1>
+  <div style="margin-left:auto" class="small">Fraunhofer approx · Finite slit width · White light blending</div>
+</header>
+
+<main>
+  <!-- Left controls -->
+  <div class="panel controls" style="overflow:auto;">
+    <h3 style="margin:0 0 8px 0">Simulation Controls</h3>
+
+    <label>Mode</label>
+    <select id="mode">
+      <option value="mono">Monochromatic</option>
+      <option value="white">White Light (RGB blend)</option>
+    </select>
+
+    <label>Wavelength (λ) — nm</label>
+    <div class="row">
+      <input id="wavelength" type="range" min="350" max="750" step="1" value="632">
+      <input id="wavelengthNum" type="number" min="350" max="750" step="1" value="632" style="width:78px;">
+    </div>
+
+    <label>Slit separation (d) — mm (center-to-center)</label>
+    <div class="row">
+      <input id="dRange" type="range" min="0.05" max="5" step="0.01" value="0.5">
+      <input id="dNum" type="number" min="0.05" max="5" step="0.01" value="0.5" style="width:78px;">
+    </div>
+
+    <label>Slit width (a) — mm</label>
+    <div class="row">
+      <input id="aRange" type="range" min="0.01" max="2" step="0.01" value="0.1">
+      <input id="aNum" type="number" min="0.01" max="2" step="0.01" value="0.1" style="width:78px;">
+    </div>
+
+    <label>Screen distance (D) — m</label>
+    <div class="row">
+      <input id="Drange" type="range" min="0.05" max="5" step="0.01" value="1">
+      <input id="Dnum" type="number" min="0.05" max="5" step="0.01" value="1" style="width:78px;">
+    </div>
+
+    <label>Intensity scale (I₀)</label>
+    <div class="row">
+      <input id="I0range" type="range" min="0.05" max="5" step="0.01" value="1">
+      <input id="I0num" type="number" min="0.05" max="5" step="0.01" value="1" style="width:78px;">
+    </div>
+
+    <label>Screen width (visual) — mm</label>
+    <div class="row">
+      <input id="screenWidthRange" type="range" min="5" max="1000" step="1" value="300">
+      <input id="screenWidthNum" type="number" min="5" max="1000" step="1" value="300" style="width:78px;">
+    </div>
+
+    <label>Sampling resolution (pixels across)</label>
+    <div class="row">
+      <input id="resRange" type="range" min="200" max="2400" step="50" value="1200">
+      <input id="resNum" type="number" min="200" max="2400" step="50" value="1200" style="width:78px;">
+    </div>
+
+    <div style="margin-top:10px; display:flex; gap:8px;">
+      <button id="updateBtn">Render</button>
+      <button id="resetBtn" class="ghost">Reset</button>
+    </div>
+
+    <hr style="margin:12px 0; border:0; height:1px; background:rgba(255,255,255,0.02)">
+
+    <h4 style="margin:6px 0">Advanced / Extras</h4>
+    <div class="small">White-light uses sample wavelengths across visible; you can adjust sample density below.</div>
+    <label>White-light samples (higher = smoother)</label>
+    <input id="whiteSamples" type="range" min="3" max="30" step="1" value="9">
+
+    <label>Color mapping gamma</label>
+    <input id="gammaRange" type="range" min="0.2" max="2.5" step="0.05" value="1">
+
+    <div style="margin-top:8px; display:flex; gap:8px;">
+      <button id="downloadCSV" class="ghost">Download CSV (x, I)</button>
+      <button id="downloadPNG" class="ghost">Download Image (PNG)</button>
+    </div>
+
+    <div style="flex:1"></div>
+
+    <div class="small" style="margin-top:12px">
+      <b>How it computes:</b><br>
+      Intensity on screen: <code>I(x) = I0 · cos²(π d x / (λ D)) · sinc²(π a x / (λ D))</code> (Fraunhofer).<br>
+      Units: λ in meters, d & a in meters, D in meters, x is lateral coordinate on screen.
+    </div>
+  </div>
+
+  <!-- Render area -->
+  <div class="panel" id="renderArea">
+    <h3 style="margin:0 0 8px 0">Simulation — Setup & Visual Screen</h3>
+
+    <!-- Setup diagram: shows slits and screen -->
+    <canvas id="setupCanvas" height="160" style="background:#08101a; border-radius:8px;"></canvas>
+
+    <!-- Screen visual and intensity plot -->
+    <canvas id="screenCanvas" height="280"></canvas>
+    <canvas id="plotCanvas" height="140"></canvas>
+
+    <div class="stats" id="statsRow">
+      <div class="stat" id="fringeSpacing">Δx (approx) — </div>
+      <div class="stat" id="centralMax">Central max at x=0</div>
+      <div class="stat" id="firstMin">First minima — </div>
+      <div class="stat" id="notes">Notes: </div>
+    </div>
+  </div>
+
+  <!-- Right info -->
+  <div class="panel" style="display:flex;flex-direction:column">
+    <h3 style="margin:0 0 8px 0">Presets & Quick Info</h3>
+    <div class="row" style="gap:6px;">
+      <button onclick="setPreset('red')">He-Ne (632 nm)</button>
+      <button onclick="setPreset('green')">Green (532 nm)</button>
+      <button onclick="setPreset('blue')">Blue (450 nm)</button>
+      <button onclick="setPreset('white')">White Light</button>
+    </div>
+
+    <hr style="margin:10px 0; border:0; height:1px; background:rgba(255,255,255,0.02)">
+
+    <h4 style="margin:6px 0">Physics Tips</h4>
+    <ul style="padding-left:18px; color:var(--muted);">
+      <li>Fringe spacing (bright to bright) ≈ λD/d (small angle approx).</li>
+      <li>Slit width introduces envelope: wide slits → narrower central maximum (diffraction).</li>
+      <li>White-light → colored fringes near edges; central fringe remains white.</li>
+      <li>Use large D to spread fringes for better visibility.</li>
+    </ul>
+
+    <hr style="margin:10px 0; border:0; height:1px; background:rgba(255,255,255,0.02)">
+
+    <div class="small">
+      <b>Export</b><br>
+      Use "Download CSV" to export sampled x (mm) and intensity values. PNG saves the combined setup + pattern image.
+    </div>
+
+    <div style="flex:1"></div>
+
+    <div style="display:flex; gap:8px; align-items:center;">
+      <div class="small">Built for JEE / NEET teaching • Oct 2025</div>
+      <div style="margin-left:auto;"><button id="helpBtn" class="ghost">How to use</button></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Want it embedded in your LMS or turned into a React component? Ask and I’ll produce that code too.
+</footer>
+
+<script>
+/* ------------------------------- Utilities ------------------------------- */
+const $ = id => document.getElementById(id);
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+function mmToM(mm){ return mm/1000; } // mm -> meters
+function nmToM(nm){ return nm * 1e-9; }
+
+/* ------------------------------- Elements ------------------------------- */
+const mode = $('mode');
+const wavelength = $('wavelength');
+const wavelengthNum = $('wavelengthNum');
+const dRange = $('dRange'), dNum = $('dNum');
+const aRange = $('aRange'), aNum = $('aNum');
+const Drange = $('Drange'), Dnum = $('Dnum');
+const I0range = $('I0range'), I0num = $('I0num');
+const screenWidthRange = $('screenWidthRange'), screenWidthNum = $('screenWidthNum');
+const resRange = $('resRange'), resNum = $('resNum');
+
+const updateBtn = $('updateBtn'), resetBtn = $('resetBtn');
+const setupCanvas = $('setupCanvas'), screenCanvas = $('screenCanvas'), plotCanvas = $('plotCanvas');
+const downloadCSV = $('downloadCSV'), downloadPNG = $('downloadPNG');
+const whiteSamples = $('whiteSamples'), gammaRange = $('gammaRange');
+
+const fringeSpacingEl = $('fringeSpacing'), firstMinEl = $('firstMin'), notesEl = $('notes');
+
+const ctxSetup = setupCanvas.getContext('2d');
+const ctxScreen = screenCanvas.getContext('2d');
+const ctxPlot = plotCanvas.getContext('2d');
+
+function syncRangeToNum(rangeEl, numEl){
+  rangeEl.addEventListener('input', ()=>{ numEl.value = rangeEl.value; if(rangeEl === wavelength) wavelengthToLabel(); });
+  numEl.addEventListener('change', ()=>{ rangeEl.value = numEl.value; if(rangeEl === wavelength) wavelengthToLabel(); });
+}
+syncRangeToNum(wavelength, wavelengthNum);
+syncRangeToNum(dRange, dNum);
+syncRangeToNum(aRange, aNum);
+syncRangeToNum(Drange, Dnum);
+syncRangeToNum(I0range, I0num);
+syncRangeToNum(screenWidthRange, screenWidthNum);
+syncRangeToNum(resRange, resNum);
+
+function wavelengthToLabel(){ $('wavelengthNum').value = wavelength.value; }
+
+/* ------------------------------- Physics core ------------------------------- */
+// safe sinc
+function sinc(x){
+  if (Math.abs(x) < 1e-8) return 1 - x*x/6 + x*x*x*x/120;
+  return Math.sin(x)/x;
+}
+// intensity for single wavelength
+function intensityMono(x, params){
+  const {lambda, d, a, D, I0} = params;
+  const k = Math.PI * d * x / (lambda * D);
+  const env = Math.PI * a * x / (lambda * D);
+  const inter = Math.cos(k);
+  const envf = sinc(env);
+  const I = I0 * inter*inter * envf*envf;
+  return Math.max(0, I);
+}
+// sample visible range
+function visibleWavelengths(nSamples){
+  const min = 380, max = 750;
+  const arr = [];
+  for (let i=0;i<nSamples;i++){
+    const lam = min + (max-min) * i/(nSamples-1);
+    arr.push(lam);
+  }
+  return arr;
+}
+// wavelength (nm) to approximate RGB
+function wavelengthToRGB(wavelength){
+  const wl = wavelength;
+  let R=0,G=0,B=0;
+  if (wl >= 380 && wl < 440){
+    R = -(wl - 440) / (440-380);
+    G = 0;
+    B = 1;
+  } else if (wl >= 440 && wl < 490) {
+    R = 0;
+    G = (wl - 440) / (490-440);
+    B = 1;
+  } else if (wl >= 490 && wl < 510) {
+    R = 0;
+    G = 1;
+    B = -(wl - 510)/(510-490);
+  } else if (wl >= 510 && wl < 580) {
+    R = (wl - 510)/(580-510);
+    G = 1;
+    B = 0;
+  } else if (wl >= 580 && wl < 645) {
+    R = 1;
+    G = -(wl - 645)/(645-580);
+    B = 0;
+  } else if (wl >= 645 && wl <= 750) {
+    R = 1;
+    G = 0;
+    B = 0;
+  }
+  let factor = 1;
+  if (wl > 700) factor = 0.3 + 0.7*(750 - wl)/(750-700);
+  else if (wl < 420) factor = 0.3 + 0.7*(wl - 380)/(420-380);
+  return [R*factor, G*factor, B*factor];
+}
+
+/* ------------------------------- Rendering ------------------------------- */
+
+let lastRenderedData = null;
+
+function render(){
+  // read params
+  const modeVal = mode.value;
+  const lambdaNm = Number(wavelengthNum.value);
+  const d_mm = Number(dNum.value);
+  const a_mm = Number(aNum.value);
+  const D_m = Number(Dnum.value);
+  const I0 = Number(I0num.value);
+  const screenWidth_mm = Number(screenWidthNum.value);
+  const res = Number(resNum.value);
+
+  const paramsMono = {
+    lambda: nmToM(lambdaNm),
+    d: mmToM(d_mm),
+    a: mmToM(a_mm),
+    D: D_m,
+    I0: I0
+  };
+
+  // sample x across screenWidth
+  const halfWidth = screenWidth_mm/2;
+  const xs = new Float64Array(res);
+  for (let i=0;i<res;i++){
+    const frac = i/(res-1);
+    xs[i] = mmToM(-halfWidth + frac*screenWidth_mm); // in meters
+  }
+
+  // For white light mode, precompute wavelengths and rgb basis
+  const gamma = Number(gammaRange.value);
+  let wlSamples = null, rgbMap = null;
+  if (modeVal === 'white'){
+    const n = Number(whiteSamples.value);
+    wlSamples = visibleWavelengths(n);
+    rgbMap = wlSamples.map(wl => wavelengthToRGB(wl));
+  }
+
+  // compute intensity and rgb color for visual screen
+  const intensities = new Float64Array(res);
+  const colors = new Array(res);
+  let maxI = 0;
+  for (let i=0;i<res;i++){
+    const x = xs[i];
+    if (modeVal === 'mono'){
+      const I = intensityMono(x, paramsMono);
+      intensities[i] = I;
+      if (I > maxI) maxI = I;
+    } else {
+      let R=0,G=0,B=0;
+      for (let j=0;j<wlSamples.length;j++){
+        const lam = wlSamples[j] * 1e-9;
+        const Isp = intensityMono(x, { lambda: lam, d: mmToM(d_mm), a: mmToM(a_mm), D: D_m, I0: I0 });
+        const rgb = rgbMap[j];
+        R += rgb[0] * Isp;
+        G += rgb[1] * Isp;
+        B += rgb[2] * Isp;
+      }
+      colors[i] = [R, G, B];
+      const Itot = R+G+B;
+      intensities[i] = Itot;
+      if (Itot > maxI) maxI = Itot;
+    }
+  }
+
+  if (modeVal === 'mono'){
+    for (let i=0;i<res;i++) colors[i] = [intensities[i], intensities[i], intensities[i]];
+  }
+
+  // === draw setup diagram (slits + screen) ===
+  drawSetupDiagram(d_mm, a_mm, D_m);
+
+  // === render screen pattern ===
+  const canvasW = screenCanvas.width = Math.min(1400, Math.max(600, Math.floor(window.innerWidth * 0.55)));
+  const canvasH = screenCanvas.height = 280;
+  const img = ctxScreen.createImageData(canvasW, canvasH);
+  const data = img.data;
+  for (let cx = 0; cx < canvasW; cx++){
+    const frac = cx / (canvasW - 1);
+    const idx = Math.floor(frac * (res - 1));
+    const col = colors[idx];
+    const I = intensities[idx];
+    let r=0,g=0,b=0;
+    if (modeVal === 'mono'){
+      const waveRGB = wavelengthToRGB(lambdaNm);
+      const lum = Math.pow(I / (maxI || 1), 1/gamma);
+      r = clamp(Math.round(waveRGB[0] * 255 * lum), 0, 255);
+      g = clamp(Math.round(waveRGB[1] * 255 * lum), 0, 255);
+      b = clamp(Math.round(waveRGB[2] * 255 * lum), 0, 255);
+    } else {
+      const total = col[0] + col[1] + col[2];
+      if (total > 0){
+        const lum = Math.pow(I / (maxI || 1), 1/gamma);
+        r = clamp(Math.round((col[0]/total) * 255 * lum), 0,255);
+        g = clamp(Math.round((col[1]/total) * 255 * lum), 0,255);
+        b = clamp(Math.round((col[2]/total) * 255 * lum), 0,255);
+      }
+    }
+    for (let y = 0; y < canvasH; y++){
+      const id = 4 * (y * canvasW + cx);
+      data[id] = r;
+      data[id+1] = g;
+      data[id+2] = b;
+      data[id+3] = 255;
+    }
+  }
+  ctxScreen.putImageData(img, 0, 0);
+
+  // intensity plot
+  plotCanvas.width = canvasW;
+  plotCanvas.height = 140;
+  ctxPlot.clearRect(0,0,plotCanvas.width,plotCanvas.height);
+  ctxPlot.fillStyle = "#071025";
+  ctxPlot.fillRect(0,0,plotCanvas.width,plotCanvas.height);
+  ctxPlot.strokeStyle = "rgba(255,255,255,0.06)";
+  ctxPlot.beginPath();
+  ctxPlot.moveTo(0, plotCanvas.height-1);
+  ctxPlot.lineTo(plotCanvas.width, plotCanvas.height-1);
+  ctxPlot.stroke();
+
+  ctxPlot.beginPath();
+  for (let cx = 0; cx < plotCanvas.width; cx++){
+    const frac = cx / (plotCanvas.width - 1);
+    const idx = Math.floor(frac * (res - 1));
+    const v = intensities[idx]/(maxI || 1);
+    const y = (1 - v) * (plotCanvas.height - 10) + 5;
+    if (cx === 0) ctxPlot.moveTo(cx, y); else ctxPlot.lineTo(cx, y);
+  }
+  ctxPlot.strokeStyle = "rgba(90,200,255,0.9)";
+  ctxPlot.lineWidth = 1.6;
+  ctxPlot.stroke();
+
+  ctxPlot.fillStyle = "rgba(255,255,255,0.6)";
+  ctxPlot.font = "12px Inter, Arial";
+  ctxPlot.fillText("Intensity (normalized)", 8, 14);
+
+  // compute theoretical fringe spacing approx: Δx = λ D / d
+  const approxDeltaX = (nmToM(lambdaNm) * D_m) / mmToM(d_mm); // meters
+  const approxDeltaMM = approxDeltaX * 1000;
+  const approxFirstMin = ((nmToM(lambdaNm)*D_m)/mmToM(a_mm) * 1000);
+
+  fringeSpacingEl.textContent = `Δx ≈ ${approxDeltaMM.toFixed(3)} mm (λD/d)`;
+  firstMinEl.textContent = `Slit envelope first minima at x ≈ ± ${approxFirstMin.toFixed(3)} mm`;
+  notesEl.textContent = `Mode: ${modeVal === 'mono' ? 'Monochromatic' : 'White light'} • Samples: ${whiteSamples.value}`;
+
+  lastRenderedData = { xs, intensities, colors, maxI, paramsMono, mode: modeVal, screenW_mm: screenWidth_mm };
+}
+
+/* ------------------------------- Setup diagram drawing ------------------------------- */
+function drawSetupDiagram(d_mm, a_mm, D_m){
+  // canvas sizing and clearing
+  const w = setupCanvas.width = Math.min(1200, Math.max(520, Math.floor(window.innerWidth * 0.35)));
+  const h = setupCanvas.height = 160;
+  ctxSetup.clearRect(0,0,w,h);
+
+  // background
+  ctxSetup.fillStyle = "#041220";
+  ctxSetup.fillRect(0,0,w,h);
+
+  // coordinate: left = slits plane at x=100, screen at x = w-120
+  const slitPlaneX = Math.round(w * 0.18);
+  const screenX = Math.round(w * 0.82);
+  const centerY = Math.round(h/2);
+
+  // draw slits plane
+  ctxSetup.strokeStyle = "rgba(255,255,255,0.08)";
+  ctxSetup.lineWidth = 2;
+  ctxSetup.beginPath();
+  ctxSetup.moveTo(slitPlaneX, 8);
+  ctxSetup.lineTo(slitPlaneX, h-8);
+  ctxSetup.stroke();
+
+  // draw screen line
+  ctxSetup.beginPath();
+  ctxSetup.moveTo(screenX, 8);
+  ctxSetup.lineTo(screenX, h-8);
+  ctxSetup.stroke();
+
+  // draw slits: two small gaps centered around centerY with separation d_mm
+  const d_px = clamp(d_mm / 5, 2, 60); // visual separation (not physically scaled exactly) -> keep readable
+  const a_px = clamp(a_mm * 6, 1.5, 20); // slit width rendered
+  const y1 = centerY - d_px/2;
+  const y2 = centerY + d_px/2;
+
+  // slit rectangles (black gap in a bright plane)
+  ctxSetup.fillStyle = "#dfe7ef";
+  ctxSetup.fillRect(slitPlaneX-6, 8, 12, h-16); // bright screen plane
+  ctxSetup.fillStyle = "#08101a";
+  ctxSetup.fillRect(slitPlaneX-8, y1 - a_px/2, 16, a_px); // top slit opening (dark)
+  ctxSetup.fillRect(slitPlaneX-8, y2 - a_px/2, 16, a_px); // bottom slit opening
+
+  // draw source dots just left of slits (point-like source positions)
+  ctxSetup.fillStyle = "#ff6b6b";
+  ctxSetup.beginPath();
+  ctxSetup.arc(slitPlaneX - 18, y1, 4, 0, Math.PI*2);
+  ctxSetup.fill();
+  ctxSetup.fillStyle = "#6bb8ff";
+  ctxSetup.beginPath();
+  ctxSetup.arc(slitPlaneX - 18, y2, 4, 0, Math.PI*2);
+  ctxSetup.fill();
+
+  // labels
+  ctxSetup.fillStyle = "rgba(255,255,255,0.75)";
+  ctxSetup.font = "12px Inter, Arial";
+  ctxSetup.fillText("+q (top slit)", slitPlaneX - 70, y1 - 12);
+  ctxSetup.fillText("-q (bottom slit)", slitPlaneX - 86, y2 + 18);
+
+  // draw screen rectangle with sample fringe markers
+  ctxSetup.fillStyle = "rgba(200,220,255,0.02)";
+  ctxSetup.fillRect(screenX - 2, 8, 4, h-16);
+  ctxSetup.fillStyle = "rgba(255,255,255,0.12)";
+  ctxSetup.font = "11px Inter, Arial";
+  ctxSetup.fillText("Observation Screen", screenX - 84, 18);
+
+  // draw sample rays from each slit to center and to offset points (visual only)
+  ctxSetup.strokeStyle = "rgba(255,255,255,0.12)";
+  ctxSetup.lineWidth = 1;
+  const sampleOffsets = [-40, 0, 40]; // pixels on screen
+  for (let s = 0; s < sampleOffsets.length; s++){
+    const sy = centerY + sampleOffsets[s];
+    // from top slit
+    ctxSetup.beginPath();
+    ctxSetup.moveTo(slitPlaneX - 12, y1);
+    ctxSetup.lineTo(screenX, sy);
+    ctxSetup.stroke();
+    // from bottom slit
+    ctxSetup.beginPath();
+    ctxSetup.moveTo(slitPlaneX - 12, y2);
+    ctxSetup.lineTo(screenX, sy);
+    ctxSetup.stroke();
+  }
+
+  // draw distance arrow & label: D_m scaled (visual)
+  ctxSetup.strokeStyle = "rgba(255,255,255,0.18)";
+  ctxSetup.beginPath();
+  ctxSetup.moveTo(slitPlaneX + 6, h - 28);
+  ctxSetup.lineTo(screenX - 6, h - 28);
+  ctxSetup.stroke();
+  ctxSetup.beginPath();
+  ctxSetup.moveTo(slitPlaneX + 6, h - 32);
+  ctxSetup.lineTo(slitPlaneX + 12, h - 28);
+  ctxSetup.moveTo(screenX - 6, h - 32);
+  ctxSetup.lineTo(screenX - 12, h - 28);
+  ctxSetup.stroke();
+  ctxSetup.fillStyle = "rgba(255,255,255,0.7)";
+  ctxSetup.fillText(`D ≈ ${D_m.toFixed(2)} m`, Math.round((slitPlaneX + screenX)/2) - 20, h - 40);
+}
+
+/* ------------------------------- Events & Helpers ------------------------------- */
+updateBtn.addEventListener('click', render);
+resetBtn.addEventListener('click', ()=> {
+  wavelength.value = 632; wavelengthNum.value = 632;
+  dRange.value = 0.5; dNum.value = 0.5;
+  aRange.value = 0.1; aNum.value = 0.1;
+  Drange.value = 1; Dnum.value = 1;
+  I0range.value = 1; I0num.value = 1;
+  screenWidthRange.value = 300; screenWidthNum.value = 300;
+  resRange.value = 1200; resNum.value = 1200;
+  whiteSamples.value = 9; gammaRange.value = 1;
+  mode.value = 'mono';
+  render();
+});
+
+function setPreset(p){
+  if (p === 'red'){ wavelength.value = 632; wavelengthNum.value = 632; mode.value='mono'; dRange.value=0.5; dNum.value=0.5; aRange.value=0.1; aNum.value=0.1; Drange.value=1; Dnum.value=1; }
+  if (p === 'green'){ wavelength.value = 532; wavelengthNum.value = 532; mode.value='mono'; }
+  if (p === 'blue'){ wavelength.value = 450; wavelengthNum.value = 450; mode.value='mono'; }
+  if (p === 'white'){ mode.value='white'; }
+  render();
+}
+
+/* export CSV */
+downloadCSV.addEventListener('click', ()=>{
+  if (!lastRenderedData) return alert('Render first.');
+  const { xs, intensities } = lastRenderedData;
+  let csv = 'x_mm,intensity\n';
+  for (let i=0;i<xs.length;i++){
+    csv += `${(xs[i]*1000).toFixed(6)},${intensities[i].toPrecision(8)}\n`;
+  }
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'double_slit_intensity.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* export PNG - combine setup + screen + plot into single image */
+downloadPNG.addEventListener('click', ()=>{
+  if (!lastRenderedData) return alert('Render first.');
+  const out = document.createElement('canvas');
+  const w = Math.max(setupCanvas.width, screenCanvas.width, plotCanvas.width);
+  const h = setupCanvas.height + screenCanvas.height + plotCanvas.height + 20;
+  out.width = w;
+  out.height = h;
+  const ctx = out.getContext('2d');
+
+  // background
+  ctx.fillStyle = "#071025";
+  ctx.fillRect(0,0,w,h);
+
+  // draw each in order with margins
+  const pad = Math.floor((w - setupCanvas.width)/2);
+  ctx.drawImage(setupCanvas, pad, 8);
+  ctx.drawImage(screenCanvas, Math.floor((w - screenCanvas.width)/2), setupCanvas.height + 12);
+  ctx.drawImage(plotCanvas, Math.floor((w - plotCanvas.width)/2), setupCanvas.height + screenCanvas.height + 16);
+
+  const link = document.createElement('a');
+  link.download = 'double_slit_simulation.png';
+  link.href = out.toDataURL('image/png');
+  link.click();
+});
+
+/* help */
+$('helpBtn').addEventListener('click', ()=> {
+  alert('How to use:\n• Choose mode (Monochromatic or White light).\n• Adjust λ, slit separation d, slit width a, screen distance D.\n• Press Render. Use presets for quick setups.\n\nPhysics:\nI(x) = I0·cos²(π d x / (λ D))·sinc²(π a x / (λ D)). Fraunhofer (far field) assumed.\nFringe spacing ≈ λD/d.');
+});
+
+/* resize handling */
+window.addEventListener('resize', ()=> {
+  // adapt canvases and re-render
+  render();
+});
+
+/* initial render */
+render();
+</script>
+</body>
+</html>

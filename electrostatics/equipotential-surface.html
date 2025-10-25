@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipotential Surface Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .simulation-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .controls-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        canvas {
+            display: block;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            margin: 0 auto;
+            cursor: crosshair;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        button.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: #fdbb2d;
+            box-shadow: 0 0 15px rgba(253, 187, 45, 0.5);
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fdbb2d;
+            cursor: pointer;
+        }
+        
+        .info-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .info-content {
+            line-height: 1.6;
+        }
+        
+        .info-content h3 {
+            margin: 15px 0 10px;
+            color: #fdbb2d;
+        }
+        
+        .info-content ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .color-legend {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .color-bar {
+            height: 20px;
+            flex: 1;
+            background: linear-gradient(to right, blue, cyan, green, yellow, red);
+            border-radius: 4px;
+            margin: 0 10px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Equipotential Surface Visualizer</h1>
+            <p class="subtitle">Explore how electric potential varies in space around charged objects. Equipotential surfaces are surfaces where the electric potential is constant.</p>
+        </header>
+        
+        <div class="content">
+            <div class="simulation-panel">
+                <h2 class="panel-title">Simulation</h2>
+                <canvas id="simulationCanvas" width="600" height="500"></canvas>
+                <div class="color-legend">
+                    <span>Low Potential</span>
+                    <div class="color-bar"></div>
+                    <span>High Potential</span>
+                </div>
+            </div>
+            
+            <div class="controls-panel">
+                <h2 class="panel-title">Controls</h2>
+                
+                <div class="control-group">
+                    <h3 class="control-title">Charge Configuration</h3>
+                    <div class="btn-group">
+                        <button id="singlePositive" class="active">Single Positive</button>
+                        <button id="singleNegative">Single Negative</button>
+                        <button id="dipole">Dipole</button>
+                    </div>
+                    <div class="btn-group">
+                        <button id="twoPositive">Two Positive</button>
+                        <button id="twoNegative">Two Negative</button>
+                        <button id="quadrupole">Quadrupole</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3 class="control-title">Visualization Options</h3>
+                    <div class="btn-group">
+                        <button id="showEquipotentials" class="active">Equipotential Lines</button>
+                        <button id="showFieldVectors">Field Vectors</button>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Potential Sensitivity</span>
+                            <span id="sensitivityValue">5</span>
+                        </div>
+                        <input type="range" id="sensitivitySlider" min="1" max="10" value="5">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Number of Lines</span>
+                            <span id="linesValue">10</span>
+                        </div>
+                        <input type="range" id="linesSlider" min="5" max="20" value="10">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3 class="control-title">Add Custom Charges</h3>
+                    <div class="btn-group">
+                        <button id="addPositive">Add Positive Charge</button>
+                        <button id="addNegative">Add Negative Charge</button>
+                        <button id="clearCharges">Clear All</button>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">Click on the simulation to place charges</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <h2 class="panel-title">About Equipotential Surfaces</h2>
+            <div class="info-content">
+                <p>Equipotential surfaces are imaginary surfaces where the electric potential is constant at every point. In this simulation:</p>
+                
+                <h3>Key Properties:</h3>
+                <ul>
+                    <li>No work is required to move a charge along an equipotential surface</li>
+                    <li>Electric field lines are always perpendicular to equipotential surfaces</li>
+                    <li>The spacing between equipotential surfaces indicates the strength of the electric field</li>
+                </ul>
+                
+                <h3>How to Use This Simulation:</h3>
+                <ul>
+                    <li>Select different charge configurations from the controls</li>
+                    <li>Adjust the sensitivity to change how potential values are mapped to colors</li>
+                    <li>Toggle between equipotential lines and electric field vectors</li>
+                    <li>Add your own charges by clicking on the simulation area</li>
+                </ul>
+                
+                <p>Notice how the equipotential lines are always perpendicular to the electric field vectors (when shown). For a single point charge, the equipotential surfaces are concentric spheres. For a dipole, they form more complex patterns.</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Equipotential Surface Visualizer | Physics Simulation | Created with HTML5 Canvas</p>
+        </footer>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Simulation parameters
+        let charges = [];
+        let showEquipotentials = true;
+        let showFieldVectors = false;
+        let potentialSensitivity = 5;
+        let numEquipotentialLines = 10;
+        
+        // Charge configurations
+        const configurations = {
+            singlePositive: [{x: canvas.width/2, y: canvas.height/2, q: 1}],
+            singleNegative: [{x: canvas.width/2, y: canvas.height/2, q: -1}],
+            dipole: [
+                {x: canvas.width/2 - 80, y: canvas.height/2, q: 1},
+                {x: canvas.width/2 + 80, y: canvas.height/2, q: -1}
+            ],
+            twoPositive: [
+                {x: canvas.width/2 - 80, y: canvas.height/2, q: 1},
+                {x: canvas.width/2 + 80, y: canvas.height/2, q: 1}
+            ],
+            twoNegative: [
+                {x: canvas.width/2 - 80, y: canvas.height/2, q: -1},
+                {x: canvas.width/2 + 80, y: canvas.height/2, q: -1}
+            ],
+            quadrupole: [
+                {x: canvas.width/2 - 80, y: canvas.height/2 - 80, q: 1},
+                {x: canvas.width/2 + 80, y: canvas.height/2 - 80, q: -1},
+                {x: canvas.width/2 - 80, y: canvas.height/2 + 80, q: -1},
+                {x: canvas.width/2 + 80, y: canvas.height/2 + 80, q: 1}
+            ]
+        };
+        
+        // Initialize with single positive charge
+        charges = [...configurations.singlePositive];
+        
+        // Calculate electric potential at a point (x, y)
+        function calculatePotential(x, y) {
+            let potential = 0;
+            const k = 9e9; // Coulomb's constant
+            
+            for (const charge of charges) {
+                const dx = x - charge.x;
+                const dy = y - charge.y;
+                let r = Math.sqrt(dx*dx + dy*dy);
+                
+                // Avoid division by zero
+                if (r < 10) r = 10;
+                
+                potential += k * charge.q / r;
+            }
+            
+            return potential;
+        }
+        
+        // Calculate electric field at a point (x, y)
+        function calculateField(x, y) {
+            let Ex = 0, Ey = 0;
+            const k = 9e9; // Coulomb's constant
+            
+            for (const charge of charges) {
+                const dx = x - charge.x;
+                const dy = y - charge.y;
+                let r = Math.sqrt(dx*dx + dy*dy);
+                
+                // Avoid division by zero
+                if (r < 10) continue;
+                
+                const r3 = r * r * r;
+                Ex += k * charge.q * dx / r3;
+                Ey += k * charge.q * dy / r3;
+            }
+            
+            return {x: Ex, y: Ey};
+        }
+        
+        // Convert potential to color
+        function potentialToColor(potential) {
+            // Normalize potential based on sensitivity
+            const normalized = Math.atan(potential / (1e10 * potentialSensitivity)) * 2 / Math.PI;
+            
+            // Map to color gradient (blue to red)
+            if (normalized < 0) {
+                // Negative potential (blue shades)
+                const intensity = Math.min(1, -normalized);
+                return `rgb(0, 0, ${Math.floor(100 + 155 * intensity)})`;
+            } else {
+                // Positive potential (red shades)
+                const intensity = Math.min(1, normalized);
+                return `rgb(${Math.floor(100 + 155 * intensity)}, 0, 0)`;
+            }
+        }
+        
+        // Draw equipotential lines as concentric circles for point charges
+        function drawEquipotentialLines() {
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            
+            // For each charge, draw concentric circles
+            for (const charge of charges) {
+                const k = 9e9;
+                const maxRadius = 200;
+                
+                // Draw multiple equipotential lines
+                for (let i = 1; i <= numEquipotentialLines; i++) {
+                    const radius = (maxRadius / numEquipotentialLines) * i;
+                    
+                    ctx.beginPath();
+                    ctx.arc(charge.x, charge.y, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+            
+            ctx.setLineDash([]);
+        }
+        
+        // Draw the simulation
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw potential field
+            if (showEquipotentials) {
+                const cellSize = 5;
+                
+                for (let x = 0; x < canvas.width; x += cellSize) {
+                    for (let y = 0; y < canvas.height; y += cellSize) {
+                        const potential = calculatePotential(x, y);
+                        ctx.fillStyle = potentialToColor(potential);
+                        ctx.fillRect(x, y, cellSize, cellSize);
+                    }
+                }
+                
+                // Draw equipotential lines
+                drawEquipotentialLines();
+            }
+            
+            // Draw electric field vectors
+            if (showFieldVectors) {
+                ctx.strokeStyle = 'cyan';
+                ctx.fillStyle = 'cyan';
+                ctx.lineWidth = 1;
+                
+                const spacing = 30;
+                
+                for (let x = spacing; x < canvas.width; x += spacing) {
+                    for (let y = spacing; y < canvas.height; y += spacing) {
+                        const field = calculateField(x, y);
+                        const magnitude = Math.sqrt(field.x * field.x + field.y * field.y);
+                        
+                        if (magnitude > 1e5) {
+                            // Normalize and scale the vector
+                            const scale = 15;
+                            const dx = field.x / magnitude * scale;
+                            const dy = field.y / magnitude * scale;
+                            
+                            // Draw arrow
+                            ctx.beginPath();
+                            ctx.moveTo(x, y);
+                            ctx.lineTo(x + dx, y + dy);
+                            ctx.stroke();
+                            
+                            // Draw arrowhead
+                            ctx.beginPath();
+                            ctx.moveTo(x + dx, y + dy);
+                            ctx.lineTo(x + dx - dx*0.3 + dy*0.2, y + dy - dy*0.3 - dx*0.2);
+                            ctx.lineTo(x + dx - dx*0.3 - dy*0.2, y + dy - dy*0.3 + dx*0.2);
+                            ctx.closePath();
+                            ctx.fill();
+                        }
+                    }
+                }
+            }
+            
+            // Draw charges
+            for (const charge of charges) {
+                if (charge.q > 0) {
+                    // Positive charge (red)
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath();
+                    ctx.arc(charge.x, charge.y, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // Plus sign
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(charge.x - 6, charge.y);
+                    ctx.lineTo(charge.x + 6, charge.y);
+                    ctx.moveTo(charge.x, charge.y - 6);
+                    ctx.lineTo(charge.x, charge.y + 6);
+                    ctx.stroke();
+                } else {
+                    // Negative charge (blue)
+                    ctx.fillStyle = 'blue';
+                    ctx.beginPath();
+                    ctx.arc(charge.x, charge.y, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // Minus sign
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(charge.x - 6, charge.y);
+                    ctx.lineTo(charge.x + 6, charge.y);
+                    ctx.stroke();
+                }
+            }
+            
+            requestAnimationFrame(draw);
+        }
+        
+        // Event listeners for configuration buttons
+        document.getElementById('singlePositive').addEventListener('click', () => {
+            charges = [...configurations.singlePositive];
+            setActiveButton('singlePositive');
+        });
+        
+        document.getElementById('singleNegative').addEventListener('click', () => {
+            charges = [...configurations.singleNegative];
+            setActiveButton('singleNegative');
+        });
+        
+        document.getElementById('dipole').addEventListener('click', () => {
+            charges = [...configurations.dipole];
+            setActiveButton('dipole');
+        });
+        
+        document.getElementById('twoPositive').addEventListener('click', () => {
+            charges = [...configurations.twoPositive];
+            setActiveButton('twoPositive');
+        });
+        
+        document.getElementById('twoNegative').addEventListener('click', () => {
+            charges = [...configurations.twoNegative];
+            setActiveButton('twoNegative');
+        });
+        
+        document.getElementById('quadrupole').addEventListener('click', () => {
+            charges = [...configurations.quadrupole];
+            setActiveButton('quadrupole');
+        });
+        
+        // Event listeners for visualization options
+        document.getElementById('showEquipotentials').addEventListener('click', () => {
+            showEquipotentials = true;
+            showFieldVectors = false;
+            setActiveButton('showEquipotentials');
+        });
+        
+        document.getElementById('showFieldVectors').addEventListener('click', () => {
+            showEquipotentials = false;
+            showFieldVectors = true;
+            setActiveButton('showFieldVectors');
+        });
+        
+        // Event listeners for sliders
+        document.getElementById('sensitivitySlider').addEventListener('input', (e) => {
+            potentialSensitivity = parseInt(e.target.value);
+            document.getElementById('sensitivityValue').textContent = potentialSensitivity;
+        });
+        
+        document.getElementById('linesSlider').addEventListener('input', (e) => {
+            numEquipotentialLines = parseInt(e.target.value);
+            document.getElementById('linesValue').textContent = numEquipotentialLines;
+        });
+        
+        // Event listeners for custom charges
+        let addingPositive = false;
+        let addingNegative = false;
+        
+        document.getElementById('addPositive').addEventListener('click', () => {
+            addingPositive = true;
+            addingNegative = false;
+            setActiveButton('addPositive');
+        });
+        
+        document.getElementById('addNegative').addEventListener('click', () => {
+            addingPositive = false;
+            addingNegative = true;
+            setActiveButton('addNegative');
+        });
+        
+        document.getElementById('clearCharges').addEventListener('click', () => {
+            charges = [];
+            addingPositive = false;
+            addingNegative = false;
+            setActiveButton('clearCharges');
+        });
+        
+        // Canvas click handler for adding charges
+        canvas.addEventListener('click', (e) => {
+            if (addingPositive || addingNegative) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                charges.push({
+                    x: x,
+                    y: y,
+                    q: addingPositive ? 1 : -1
+                });
+                
+                // Reset adding flags
+                addingPositive = false;
+                addingNegative = false;
+            }
+        });
+        
+        // Helper function to set active button
+        function setActiveButton(buttonId) {
+            // Remove active class from all buttons in the same group
+            const button = document.getElementById(buttonId);
+            const parent = button.parentElement;
+            const siblings = parent.querySelectorAll('button');
+            siblings.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+        }
+        
+        // Start the simulation
+        draw();
+    </script>
+</body>
+</html>

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refraction & Total Internal Reflection Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        
+        .tab {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+        
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .tab.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: #fdbb2d;
+            box-shadow: 0 0 15px rgba(253, 187, 45, 0.5);
+        }
+        
+        .simulation-container {
+            display: none;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .simulation-container.active {
+            display: block;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 100px;
+            margin-bottom: 30px;
+        }
+        
+        .simulation-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .controls-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        canvas {
+            display: block;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            margin: 0 auto;
+            cursor: pointer;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        button.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: #fdbb2d;
+            box-shadow: 0 0 15px rgba(253, 187, 45, 0.5);
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fdbb2d;
+            cursor: pointer;
+        }
+        
+        .info-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .info-content {
+            line-height: 1.6;
+        }
+        
+        .info-content h3 {
+            margin: 15px 0 10px;
+            color: #fdbb2d;
+        }
+        
+        .info-content ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .info-content p {
+            margin-bottom: 15px;
+        }
+        
+        .formula {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+           <div class="tabs">
+            <div class="tab active" data-tab="refraction">Refraction Simulator</div>
+            <div class="tab" data-tab="tir">Total Internal Reflection</div>
+        </div>
+        </header>
+        
+        <!-- Refraction Simulation -->
+        <div id="refraction-sim" class="simulation-container active">
+            <div class="content">
+                <div class="simulation-panel">
+                    <h2 class="panel-title">Refraction Simulation</h2>
+                    <canvas id="refractionCanvas" width="600" height="500"></canvas>
+                </div>
+                
+                <div class="controls-panel">
+                    <h2 class="panel-title">Controls</h2>
+                    
+                    <div class="control-group">
+                        <h3 class="control-title">Materials</h3>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Incident Medium (n₁)</span>
+                                <span id="n1Value">1.0</span>
+                            </div>
+                            <input type="range" id="n1Slider" min="1" max="3" step="0.1" value="1.0">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Refracted Medium (n₂)</span>
+                                <span id="n2Value">1.5</span>
+                            </div>
+                            <input type="range" id="n2Slider" min="1" max="3" step="0.1" value="1.5">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3 class="control-title">Incident Angle</h3>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Angle of Incidence</span>
+                                <span id="angleValue">30°</span>
+                            </div>
+                            <input type="range" id="angleSlider" min="0" max="89" value="30">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3 class="control-title">Visualization</h3>
+                        <div class="btn-group">
+                            <button id="showNormals" class="active">Show Normals</button>
+                            <button id="showAngles" class="active">Show Angles</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Internal Reflection Simulation -->
+        <div id="tir-sim" class="simulation-container">
+            <div class="content">
+                <div class="simulation-panel">
+                    <h2 class="panel-title">Total Internal Reflection</h2>
+                    <canvas id="tirCanvas" width="600" height="500"></canvas>
+                </div>
+                
+                <div class="controls-panel">
+                    <h2 class="panel-title">Controls</h2>
+                    
+                    <div class="control-group">
+                        <h3 class="control-title">Materials</h3>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Denser Medium (n₁)</span>
+                                <span id="tirN1Value">1.5</span>
+                            </div>
+                            <input type="range" id="tirN1Slider" min="1.2" max="2.5" step="0.1" value="1.5">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Rarer Medium (n₂)</span>
+                                <span id="tirN2Value">1.0</span>
+                            </div>
+                            <input type="range" id="tirN2Slider" min="1.0" max="1.5" step="0.1" value="1.0">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3 class="control-title">Incident Angle</h3>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Angle of Incidence</span>
+                                <span id="tirAngleValue">30°</span>
+                            </div>
+                            <input type="range" id="tirAngleSlider" min="0" max="90" value="30">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3 class="control-title">Critical Angle</h3>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Critical Angle</span>
+                                <span id="criticalAngleValue">41.8°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+    </div>
+
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and containers
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.simulation-container').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding container
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-sim`).classList.add('active');
+            });
+        });
+
+        // ========== REFRACTION SIMULATION ==========
+        const refractionCanvas = document.getElementById('refractionCanvas');
+        const refractionCtx = refractionCanvas.getContext('2d');
+        
+        // Refraction simulation parameters
+        let n1 = 1.0;
+        let n2 = 1.5;
+        let incidentAngle = 30; // in degrees
+        let showNormals = true;
+        let showAngles = true;
+        
+        // Draw refraction simulation
+        function drawRefraction() {
+            refractionCtx.clearRect(0, 0, refractionCanvas.width, refractionCanvas.height);
+            
+            const centerX = refractionCanvas.width / 2;
+            const centerY = refractionCanvas.height / 2;
+            const boundaryY = centerY;
+            const rayLength = 200;
+            
+            // Draw the two media - light travels from top to bottom
+            refractionCtx.fillStyle = 'rgba(100, 150, 255, 0.3)';
+            refractionCtx.fillRect(0, 0, refractionCanvas.width, boundaryY);
+            
+            refractionCtx.fillStyle = 'rgba(255, 150, 100, 0.3)';
+            refractionCtx.fillRect(0, boundaryY, refractionCanvas.width, refractionCanvas.height - boundaryY);
+            
+            // Draw boundary line
+            refractionCtx.strokeStyle = 'white';
+            refractionCtx.lineWidth = 2;
+            refractionCtx.beginPath();
+            refractionCtx.moveTo(0, boundaryY);
+            refractionCtx.lineTo(refractionCanvas.width, boundaryY);
+            refractionCtx.stroke();
+            
+            // Calculate angles in radians
+            const incidentAngleRad = incidentAngle * Math.PI / 180;
+            
+            // Calculate refracted angle using Snell's Law
+            let refractedAngleRad;
+            if (n1 * Math.sin(incidentAngleRad) / n2 <= 1) {
+                refractedAngleRad = Math.asin(n1 * Math.sin(incidentAngleRad) / n2);
+            } else {
+                // Total internal reflection case
+                refractedAngleRad = null;
+            }
+            
+            // Draw incident ray (from top medium to boundary)
+            refractionCtx.strokeStyle = 'yellow';
+            refractionCtx.lineWidth = 3;
+            refractionCtx.beginPath();
+            refractionCtx.moveTo(centerX, centerY);
+            refractionCtx.lineTo(
+                centerX + rayLength * Math.sin(incidentAngleRad),
+                centerY - rayLength * Math.cos(incidentAngleRad)
+            );
+            refractionCtx.stroke();
+            
+            // Draw normal
+            if (showNormals) {
+                refractionCtx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                refractionCtx.lineWidth = 1;
+                refractionCtx.setLineDash([5, 5]);
+                refractionCtx.beginPath();
+                refractionCtx.moveTo(centerX, 0);
+                refractionCtx.lineTo(centerX, refractionCanvas.height);
+                refractionCtx.stroke();
+                refractionCtx.setLineDash([]);
+            }
+            
+            if (refractedAngleRad !== null) {
+                // Draw refracted ray (into bottom medium)
+                refractionCtx.strokeStyle = 'cyan';
+                refractionCtx.lineWidth = 3;
+                refractionCtx.beginPath();
+                refractionCtx.moveTo(centerX, centerY);
+                refractionCtx.lineTo(
+                    centerX + rayLength * Math.sin(refractedAngleRad),
+                    centerY + rayLength * Math.cos(refractedAngleRad)
+                );
+                refractionCtx.stroke();
+                
+                // Draw reflected ray (partial reflection in top medium)
+                refractionCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                refractionCtx.lineWidth = 2;
+                refractionCtx.beginPath();
+                refractionCtx.moveTo(centerX, centerY);
+                refractionCtx.lineTo(
+                    centerX - rayLength * Math.sin(incidentAngleRad),
+                    centerY - rayLength * Math.cos(incidentAngleRad)
+                );
+                refractionCtx.stroke();
+                
+                // Draw angle labels
+                if (showAngles) {
+                    drawAngleLabel(refractionCtx, centerX, centerY, -incidentAngleRad, 50, 'θ₁', 'yellow');
+                    drawAngleLabel(refractionCtx, centerX, centerY, refractedAngleRad, 50, 'θ₂', 'cyan');
+                }
+            } else {
+                // Total internal reflection - draw only reflected ray
+                refractionCtx.strokeStyle = 'yellow';
+                refractionCtx.lineWidth = 3;
+                refractionCtx.beginPath();
+                refractionCtx.moveTo(centerX, centerY);
+                refractionCtx.lineTo(
+                    centerX - rayLength * Math.sin(incidentAngleRad),
+                    centerY - rayLength * Math.cos(incidentAngleRad)
+                );
+                refractionCtx.stroke();
+                
+                // Draw angle label
+                if (showAngles) {
+                    drawAngleLabel(refractionCtx, centerX, centerY, -incidentAngleRad, 50, 'θ₁', 'yellow');
+                }
+            }
+            
+            // Draw media labels
+            refractionCtx.fillStyle = 'white';
+            refractionCtx.font = '16px Arial';
+            refractionCtx.fillText(`n₁ = ${n1.toFixed(2)}`, 20, 30);
+            refractionCtx.fillText(`n₂ = ${n2.toFixed(2)}`, 20, refractionCanvas.height - 20);
+            
+            requestAnimationFrame(drawRefraction);
+        }
+        
+        // Helper function to draw angle labels
+        function drawAngleLabel(ctx, x, y, angle, radius, label, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, -Math.PI/2, -Math.PI/2 + angle);
+            ctx.stroke();
+            
+            ctx.fillStyle = color;
+            ctx.font = '14px Arial';
+            const labelX = x + (radius + 10) * Math.sin(angle/2);
+            const labelY = y - (radius + 10) * Math.cos(angle/2);
+            ctx.fillText(label, labelX, labelY);
+        }
+        
+        // Refraction event listeners
+        document.getElementById('n1Slider').addEventListener('input', (e) => {
+            n1 = parseFloat(e.target.value);
+            document.getElementById('n1Value').textContent = n1.toFixed(1);
+        });
+        
+        document.getElementById('n2Slider').addEventListener('input', (e) => {
+            n2 = parseFloat(e.target.value);
+            document.getElementById('n2Value').textContent = n2.toFixed(1);
+        });
+        
+        document.getElementById('angleSlider').addEventListener('input', (e) => {
+            incidentAngle = parseInt(e.target.value);
+            document.getElementById('angleValue').textContent = `${incidentAngle}°`;
+        });
+        
+        document.getElementById('showNormals').addEventListener('click', function() {
+            showNormals = !showNormals;
+            this.classList.toggle('active');
+        });
+        
+        document.getElementById('showAngles').addEventListener('click', function() {
+            showAngles = !showAngles;
+            this.classList.toggle('active');
+        });
+        
+        // ========== TOTAL INTERNAL REFLECTION SIMULATION ==========
+        const tirCanvas = document.getElementById('tirCanvas');
+        const tirCtx = tirCanvas.getContext('2d');
+        
+        // TIR simulation parameters
+        let tirN1 = 1.5;  // Denser medium (bottom)
+        let tirN2 = 1.0;  // Rarer medium (top)
+        let tirIncidentAngle = 30;
+        
+        // Draw TIR simulation
+        function drawTIR() {
+            tirCtx.clearRect(0, 0, tirCanvas.width, tirCanvas.height);
+            
+            const centerX = tirCanvas.width / 2;
+            const centerY = tirCanvas.height / 2;
+            const boundaryY = centerY;
+            const rayLength = 200;
+            
+            // Draw the two media - DENSER MEDIUM AT BOTTOM, RARER AT TOP
+            tirCtx.fillStyle = 'rgba(255, 150, 100, 0.4)';  // Denser medium (bottom)
+            tirCtx.fillRect(0, boundaryY, tirCanvas.width, tirCanvas.height - boundaryY);
+            
+            tirCtx.fillStyle = 'rgba(100, 150, 255, 0.4)';  // Rarer medium (top)
+            tirCtx.fillRect(0, 0, tirCanvas.width, boundaryY);
+            
+            // Draw boundary line
+            tirCtx.strokeStyle = 'white';
+            tirCtx.lineWidth = 2;
+            tirCtx.beginPath();
+            tirCtx.moveTo(0, boundaryY);
+            tirCtx.lineTo(tirCanvas.width, boundaryY);
+            tirCtx.stroke();
+            
+            // Calculate angles in radians
+            const incidentAngleRad = tirIncidentAngle * Math.PI / 180;
+            
+            // Calculate critical angle
+            const criticalAngleRad = Math.asin(tirN2 / tirN1);
+            const criticalAngleDeg = criticalAngleRad * 180 / Math.PI;
+            
+            // Update critical angle display
+            document.getElementById('criticalAngleValue').textContent = `${criticalAngleDeg.toFixed(1)}°`;
+            
+            // Draw normal
+            tirCtx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+            tirCtx.lineWidth = 1;
+            tirCtx.setLineDash([5, 5]);
+            tirCtx.beginPath();
+            tirCtx.moveTo(centerX, 0);
+            tirCtx.lineTo(centerX, tirCanvas.height);
+            tirCtx.stroke();
+            tirCtx.setLineDash([]);
+            
+            // Draw incident ray (FROM DENSER MEDIUM - BOTTOM)
+            tirCtx.strokeStyle = 'yellow';
+            tirCtx.lineWidth = 3;
+            tirCtx.beginPath();
+            tirCtx.moveTo(centerX, centerY);
+            tirCtx.lineTo(
+                centerX + rayLength * Math.sin(incidentAngleRad),
+                centerY + rayLength * Math.cos(incidentAngleRad)
+            );
+            tirCtx.stroke();
+            
+            // Check if total internal reflection occurs
+            if (tirIncidentAngle > criticalAngleDeg) {
+                // TOTAL INTERNAL REFLECTION
+                tirCtx.strokeStyle = 'yellow';
+                tirCtx.lineWidth = 3;
+                tirCtx.beginPath();
+                tirCtx.moveTo(centerX, centerY);
+                tirCtx.lineTo(
+                    centerX - rayLength * Math.sin(incidentAngleRad),
+                    centerY + rayLength * Math.cos(incidentAngleRad)
+                );
+                tirCtx.stroke();
+                
+                // Draw angle labels
+                drawAngleLabel(tirCtx, centerX, centerY, incidentAngleRad, 50, 'θ₁', 'yellow');
+                drawAngleLabel(tirCtx, centerX, centerY, -incidentAngleRad, 50, 'θᵣ', 'yellow');
+                
+                // Draw TIR indicator
+                tirCtx.fillStyle = 'red';
+                tirCtx.font = 'bold 18px Arial';
+                tirCtx.fillText('TOTAL INTERNAL REFLECTION', centerX - 120, 40);
+            } else {
+                // Partial reflection and refraction
+                const refractedAngleRad = Math.asin(tirN1 * Math.sin(incidentAngleRad) / tirN2);
+                
+                // Draw refracted ray (into rarer medium - TOP)
+                tirCtx.strokeStyle = 'cyan';
+                tirCtx.lineWidth = 3;
+                tirCtx.beginPath();
+                tirCtx.moveTo(centerX, centerY);
+                tirCtx.lineTo(
+                    centerX + rayLength * Math.sin(refractedAngleRad),
+                    centerY - rayLength * Math.cos(refractedAngleRad)
+                );
+                tirCtx.stroke();
+                
+                // Draw reflected ray (in denser medium - BOTTOM)
+                tirCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                tirCtx.lineWidth = 2;
+                tirCtx.beginPath();
+                tirCtx.moveTo(centerX, centerY);
+                tirCtx.lineTo(
+                    centerX - rayLength * Math.sin(incidentAngleRad),
+                    centerY + rayLength * Math.cos(incidentAngleRad)
+                );
+                tirCtx.stroke();
+                
+                // Draw angle labels
+                drawAngleLabel(tirCtx, centerX, centerY, incidentAngleRad, 50, 'θ₁', 'yellow');
+                drawAngleLabel(tirCtx, centerX, centerY, -refractedAngleRad, 50, 'θ₂', 'cyan');
+                
+                // Draw critical angle indicator if close to critical angle
+                if (Math.abs(tirIncidentAngle - criticalAngleDeg) < 5) {
+                    tirCtx.strokeStyle = 'red';
+                    tirCtx.lineWidth = 2;
+                    tirCtx.setLineDash([5, 5]);
+                    tirCtx.beginPath();
+                    tirCtx.moveTo(centerX, centerY);
+                    tirCtx.lineTo(
+                        centerX + rayLength * Math.sin(criticalAngleRad),
+                        centerY - rayLength * Math.cos(criticalAngleRad)
+                    );
+                    tirCtx.stroke();
+                    tirCtx.setLineDash([]);
+                    
+                    tirCtx.fillStyle = 'red';
+                    tirCtx.font = '14px Arial';
+                    tirCtx.fillText('Critical Angle', centerX + 60, centerY - 20);
+                }
+            }
+            
+            // Draw media labels
+            tirCtx.fillStyle = 'white';
+            tirCtx.font = '16px Arial';
+            tirCtx.fillText(`Rarer Medium: n₂ = ${tirN2.toFixed(2)}`, 20, 30);
+            tirCtx.fillText(`Denser Medium: n₁ = ${tirN1.toFixed(2)}`, 20, tirCanvas.height - 20);
+            
+            // Draw critical angle info
+            tirCtx.fillStyle = 'white';
+            tirCtx.font = '14px Arial';
+            tirCtx.fillText(`Critical Angle: ${criticalAngleDeg.toFixed(1)}°`, tirCanvas.width - 200, 30);
+            
+            // Draw direction indicator
+            tirCtx.fillStyle = 'white';
+            tirCtx.font = '12px Arial';
+            tirCtx.fillText('Light travels from denser to rarer medium', centerX - 100, tirCanvas.height - 10);
+            
+            requestAnimationFrame(drawTIR);
+        }
+        
+        // TIR event listeners
+        document.getElementById('tirN1Slider').addEventListener('input', (e) => {
+            tirN1 = parseFloat(e.target.value);
+            document.getElementById('tirN1Value').textContent = tirN1.toFixed(1);
+            
+            // Ensure n1 > n2 for TIR
+            if (tirN1 <= tirN2) {
+                tirN2 = tirN1 - 0.1;
+                document.getElementById('tirN2Slider').value = tirN2;
+                document.getElementById('tirN2Value').textContent = tirN2.toFixed(1);
+            }
+        });
+        
+        document.getElementById('tirN2Slider').addEventListener('input', (e) => {
+            tirN2 = parseFloat(e.target.value);
+            document.getElementById('tirN2Value').textContent = tirN2.toFixed(1);
+            
+            // Ensure n1 > n2 for TIR
+            if (tirN2 >= tirN1) {
+                tirN1 = tirN2 + 0.1;
+                document.getElementById('tirN1Slider').value = tirN1;
+                document.getElementById('tirN1Value').textContent = tirN1.toFixed(1);
+            }
+        });
+        
+        document.getElementById('tirAngleSlider').addEventListener('input', (e) => {
+            tirIncidentAngle = parseInt(e.target.value);
+            document.getElementById('tirAngleValue').textContent = `${tirIncidentAngle}°`;
+        });
+        
+        // Start both simulations
+        drawRefraction();
+        drawTIR();
+    </script>
+</body>
+</html>

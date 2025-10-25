@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallel Plate Capacitor Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #fbbf24;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            color: #cbd5e1;
+        }
+        
+        .simulator-container {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .circuit-area {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .circuit-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+            color: #fbbf24;
+        }
+        
+        .circuit-box {
+            width: 100%;
+            height: 500px;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(251, 191, 36, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+                #0f172a;
+            border-radius: 12px;
+            position: relative;
+            border: 2px solid #334155;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.7);
+        }
+        
+        .circuit-mode-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .mode-btn {
+            padding: 14px 30px;
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+            border: 2px solid #fbbf24;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+        
+        .mode-btn.active {
+            background: #fbbf24;
+            color: #0f172a;
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.7);
+            transform: translateY(-2px);
+        }
+        
+        .mode-btn:hover {
+            background: rgba(251, 191, 36, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        .laws-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .law-title {
+            color: #fbbf24;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid rgba(251, 191, 36, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .law-item {
+            margin-bottom: 10px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            padding-left: 10px;
+            border-left: 2px solid rgba(251, 191, 36, 0.3);
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 18px;
+            color: #fbbf24;
+            border-bottom: 2px solid rgba(251, 191, 36, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 16px;
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+            border: 2px solid #fbbf24;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        button:hover {
+            background: rgba(251, 191, 36, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        button.active {
+            background: #fbbf24;
+            color: #0f172a;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .slider-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 12px;
+            color: #cbd5e1;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.8);
+            border: 2px solid #fbbf24;
+        }
+        
+        .value-display {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: 10px;
+            color: #fbbf24;
+            font-weight: bold;
+            background: rgba(251, 191, 36, 0.1);
+            padding: 8px;
+            border-radius: 6px;
+        }
+        
+        .status-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .status-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .status-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        .status-label {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+        
+        .status-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #fbbf24;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+        }
+        
+        .time-constant {
+            text-align: center;
+            margin-top: 15px;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            color: #fbbf24;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.1rem;
+        }
+
+        /* Circuit component styles */
+        .wire {
+            position: absolute;
+            background: #475569;
+            z-index: 1;
+            box-shadow: 0 0 5px rgba(71, 85, 105, 0.5);
+        }
+        
+        .wire-highlight {
+            position: absolute;
+            background: #fbbf24;
+            z-index: 2;
+            box-shadow: 0 0 20px #fbbf24;
+            transition: all 0.2s ease;
+        }
+        
+        .component {
+            position: absolute;
+            z-index: 3;
+            filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.5));
+        }
+        
+        .electron {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #fbbf24;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 
+                0 0 20px #fbbf24,
+                0 0 40px rgba(251, 191, 36, 0.7),
+                inset 0 2px 4px rgba(255, 255, 255, 0.8);
+            animation: electronGlow 2s infinite alternate;
+        }
+        
+        @keyframes electronGlow {
+            0% {
+                box-shadow: 
+                    0 0 15px #fbbf24,
+                    0 0 30px rgba(251, 191, 36, 0.7),
+                    inset 0 2px 4px rgba(255, 255, 255, 0.8);
+            }
+            100% {
+                box-shadow: 
+                    0 0 25px #fbbf24,
+                    0 0 50px rgba(251, 191, 36, 0.9),
+                    inset 0 2px 6px rgba(255, 255, 255, 0.9);
+            }
+        }
+        
+        .current-indicator {
+            position: absolute;
+            color: #fbbf24;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 3;
+            background: rgba(15, 23, 42, 0.95);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid rgba(251, 191, 36, 0.4);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .voltage-indicator {
+            position: absolute;
+            color: #10b981;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 3;
+            background: rgba(15, 23, 42, 0.95);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid rgba(16, 185, 129, 0.4);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .component-label {
+            position: absolute;
+            color: #cbd5e1;
+            font-size: 13px;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+        }
+
+        /* Parallel plate capacitor styles */
+        .plate {
+            position: absolute;
+            background: linear-gradient(45deg, #1e40af, #3b82f6);
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(30, 64, 175, 0.4);
+        }
+        
+        .positive-charge {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #ef4444;
+            animation: chargePulse 2s infinite alternate;
+        }
+        
+        .negative-charge {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #3b82f6;
+            animation: chargePulse 2s infinite alternate;
+        }
+        
+        @keyframes chargePulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+        
+        .electric-field {
+            position: absolute;
+            background: linear-gradient(to bottom, 
+                transparent 0%, 
+                rgba(16, 185, 129, 0.3) 50%, 
+                transparent 100%);
+            pointer-events: none;
+        }
+        
+        .field-line {
+            position: absolute;
+            background: #10b981;
+            border-radius: 1px;
+            box-shadow: 0 0 8px #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Parallel Plate Capacitor Simulator</h1>
+            <p class="subtitle">Visualize charge buildup and electric field between parallel plates</p>
+        </header>
+        
+        <div class="simulator-container">
+            <div class="circuit-area">
+                <div class="circuit-mode-selector">
+                    <div class="mode-btn active" id="chargeModeBtn">⚡ Charging Mode</div>
+                    <div class="mode-btn" id="dischargeModeBtn">🔋 Discharging Mode</div>
+                </div>
+                
+                <div class="circuit-title" id="circuitTitle">CAPACITOR CHARGING CIRCUIT</div>
+                
+                <div class="circuit-box" id="circuitContainer">
+                    <!-- Circuit will be drawn here -->
+                </div>
+                
+                <div class="laws-box">
+                    <div class="law-title">Circuit Physics Equations:</div>
+                    <div class="law-item" id="voltageLaw">V(t) = V₀(1 - e^(-t/RC))</div>
+                    <div class="law-item" id="currentLaw">I(t) = (V₀/R)e^(-t/RC)</div>
+                    <div class="law-item" id="chargeLaw">Q(t) = CV₀(1 - e^(-t/RC))</div>
+                    <div class="law-item">Electric Field: E = V/d</div>
+                    <div class="law-item">Capacitance: C = ε₀A/d</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <h2>Circuit Parameters</h2>
+                    <div class="slider-container">
+                        <label for="capacitanceSlider">Capacitance (1μF - 1000μF)</label>
+                        <input type="range" id="capacitanceSlider" min="1" max="1000" value="100">
+                        <div class="value-display" id="capacitanceValue">100 μF</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="resistanceSlider">Resistance (10Ω - 10kΩ)</label>
+                        <input type="range" id="resistanceSlider" min="10" max="10000" value="1000">
+                        <div class="value-display" id="resistanceValue">1 kΩ</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="voltageSlider">Source Voltage (1V - 24V)</label>
+                        <input type="range" id="voltageSlider" min="1" max="24" value="12">
+                        <div class="value-display" id="voltageSliderValue">12 V</div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h2>Simulation Control</h2>
+                    <div class="btn-group">
+                        <button id="startBtn">START</button>
+                        <button id="pauseBtn">PAUSE</button>
+                        <button id="resetBtn">RESET</button>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="speedSlider">Simulation Speed</label>
+                        <input type="range" id="speedSlider" min="1" max="10" value="5">
+                        <div class="value-display" id="speedValue">NORMAL</div>
+                    </div>
+                    
+                    <div class="time-constant">
+                        <div>Time Constant (τ): <span id="tauValue">100.00 ms</span></div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h2>Real-time Measurements</h2>
+                    <div class="status-display">
+                        <div class="status-item">
+                            <div class="status-label">CAPACITOR VOLTAGE</div>
+                            <div class="status-value" id="voltageValue">0.00 V</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">CIRCUIT CURRENT</div>
+                            <div class="status-value" id="currentValue">0.00 mA</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">STORED CHARGE</div>
+                            <div class="status-value" id="chargeValue">0.00 μC</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">ELECTRIC FIELD</div>
+                            <div class="status-value" id="fieldValue">0.00 V/m</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Circuit state
+        let circuitMode = 'charging';
+        let capacitance = 100;
+        let resistance = 1000;
+        let sourceVoltage = 12;
+        let capacitorVoltage = 0;
+        let circuitCurrent = 0;
+        let storedCharge = 0;
+        let electricField = 0;
+        let time = 0;
+        let animationSpeed = 5;
+        let isRunning = false;
+        let isPaused = false;
+        let electronOffset = 0;
+        let isFullyDischarged = false;
+        
+        // UI elements
+        const chargeModeBtn = document.getElementById('chargeModeBtn');
+        const dischargeModeBtn = document.getElementById('dischargeModeBtn');
+        const circuitTitle = document.getElementById('circuitTitle');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const capacitanceSlider = document.getElementById('capacitanceSlider');
+        const resistanceSlider = document.getElementById('resistanceSlider');
+        const voltageSlider = document.getElementById('voltageSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const capacitanceValue = document.getElementById('capacitanceValue');
+        const resistanceValue = document.getElementById('resistanceValue');
+        const voltageSliderValue = document.getElementById('voltageSliderValue');
+        const speedValue = document.getElementById('speedValue');
+        const voltageDisplay = document.getElementById('voltageValue');
+        const currentDisplay = document.getElementById('currentValue');
+        const chargeDisplay = document.getElementById('chargeValue');
+        const fieldDisplay = document.getElementById('fieldValue');
+        const tauValue = document.getElementById('tauValue');
+        const voltageLaw = document.getElementById('voltageLaw');
+        const currentLaw = document.getElementById('currentLaw');
+        const chargeLaw = document.getElementById('chargeLaw');
+        
+        // Circuit container
+        const circuitContainer = document.getElementById('circuitContainer');
+        
+        // Event listeners
+        chargeModeBtn.addEventListener('click', () => {
+            setCircuitMode('charging');
+        });
+        
+        dischargeModeBtn.addEventListener('click', () => {
+            setCircuitMode('discharging');
+        });
+        
+        startBtn.addEventListener('click', () => {
+            isRunning = true;
+            isPaused = false;
+            isFullyDischarged = false;
+            startBtn.classList.add('active');
+            pauseBtn.classList.remove('active');
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            pauseBtn.classList.toggle('active', isPaused);
+            startBtn.classList.toggle('active', !isPaused);
+        });
+        
+        resetBtn.addEventListener('click', resetSimulation);
+        
+        capacitanceSlider.addEventListener('input', () => {
+            capacitance = parseInt(capacitanceSlider.value);
+            capacitanceValue.textContent = `${capacitance} μF`;
+            updateTimeConstant();
+            resetSimulation();
+        });
+        
+        resistanceSlider.addEventListener('input', () => {
+            resistance = parseInt(resistanceSlider.value);
+            resistanceValue.textContent = resistance >= 1000 ? `${(resistance/1000).toFixed(1)} kΩ` : `${resistance} Ω`;
+            updateTimeConstant();
+            resetSimulation();
+        });
+        
+        voltageSlider.addEventListener('input', () => {
+            sourceVoltage = parseInt(voltageSlider.value);
+            voltageSliderValue.textContent = `${sourceVoltage} V`;
+            resetSimulation();
+        });
+        
+        speedSlider.addEventListener('input', () => {
+            animationSpeed = parseInt(speedSlider.value);
+            const speeds = ['VERY SLOW', 'SLOW', 'MODERATE', 'NORMAL', 'FAST'];
+            speedValue.textContent = speeds[animationSpeed - 1] || 'NORMAL';
+        });
+        
+        function setCircuitMode(mode) {
+            circuitMode = mode;
+            chargeModeBtn.classList.toggle('active', mode === 'charging');
+            dischargeModeBtn.classList.toggle('active', mode === 'discharging');
+            circuitTitle.textContent = mode === 'charging' ? 
+                'CAPACITOR CHARGING CIRCUIT' : 'CAPACITOR DISCHARGING CIRCUIT';
+            
+            if (mode === 'charging') {
+                voltageLaw.textContent = 'V(t) = V₀(1 - e^(-t/RC))';
+                currentLaw.textContent = 'I(t) = (V₀/R)e^(-t/RC)';
+                chargeLaw.textContent = 'Q(t) = CV₀(1 - e^(-t/RC))';
+            } else {
+                voltageLaw.textContent = 'V(t) = V₀e^(-t/RC)';
+                currentLaw.textContent = 'I(t) = -(V₀/R)e^(-t/RC)';
+                chargeLaw.textContent = 'Q(t) = Q₀e^(-t/RC)';
+            }
+            
+            resetSimulation();
+        }
+        
+        function updateTimeConstant() {
+            const tau = (resistance * (capacitance / 1000000)) * 1000;
+            tauValue.textContent = `${tau.toFixed(2)} ms`;
+        }
+        
+        function resetSimulation() {
+            if (circuitMode === 'charging') {
+                capacitorVoltage = 0;
+                circuitCurrent = 0;
+                storedCharge = 0;
+                electricField = 0;
+            } else {
+                capacitorVoltage = sourceVoltage;
+                circuitCurrent = -sourceVoltage / resistance;
+                storedCharge = capacitance * sourceVoltage;
+                electricField = capacitorVoltage / 0.02; // Assuming 2cm plate separation
+            }
+            
+            time = 0;
+            electronOffset = 0;
+            isRunning = false;
+            isPaused = false;
+            isFullyDischarged = false;
+            startBtn.classList.remove('active');
+            pauseBtn.classList.remove('active');
+            updateDisplay();
+            drawCircuit();
+        }
+        
+        function updateDisplay() {
+            voltageDisplay.textContent = `${Math.abs(capacitorVoltage).toFixed(2)} V`;
+            currentDisplay.textContent = `${(circuitCurrent * 1000).toFixed(2)} mA`;
+            chargeDisplay.textContent = `${Math.abs(storedCharge).toFixed(2)} μC`;
+            fieldDisplay.textContent = `${electricField.toFixed(2)} V/m`;
+        }
+        
+        // Draw circuit with parallel plate capacitor
+        function drawCircuit() {
+            const width = circuitContainer.clientWidth;
+            const height = circuitContainer.clientHeight;
+            const chargeLevel = capacitorVoltage / sourceVoltage;
+            const electronPos = (electronOffset % 100) / 100;
+            
+            let circuitHTML = `
+                <!-- Main circuit wires -->
+                <div class="wire" style="top: 45%; left: 50px; width: ${width - 100}px; height: 4px;"></div>
+                <div class="wire" style="top: 55%; left: 50px; width: ${width - 100}px; height: 4px;"></div>
+                <div class="wire" style="top: 45%; left: 50px; width: 4px; height: 60px;"></div>
+                <div class="wire" style="top: 45%; left: ${width - 50}px; width: 4px; height: 60px;"></div>
+            `;
+            
+            // Add highlighted wire for current flow
+            if (isRunning && !isPaused && Math.abs(circuitCurrent) > 0.001 && !isFullyDischarged) {
+                circuitHTML += `
+                    <div class="wire-highlight" style="top: 45%; left: 50px; width: ${(width - 100) * electronPos}px; height: 4px;"></div>
+                    <div class="wire-highlight" style="top: 55%; left: ${50 + (width - 100) * (1 - electronPos)}px; width: ${(width - 100) * electronPos}px; height: 4px;"></div>
+                `;
+            }
+            
+            if (circuitMode === 'charging') {
+                // HD Battery/Cell Symbol
+                circuitHTML += `
+                    <div class="component" style="top: 35%; left: 120px;">
+                        <div style="width: 100px; height: 120px; position: relative;">
+                            <!-- Battery Case -->
+                            <div style="width: 70px; height: 50px; border: 4px solid #ef4444; border-radius: 8px; position: absolute; top: 35px; left: 15px; background: rgba(239, 68, 68, 0.1);"></div>
+                            <!-- Positive Terminal -->
+                            <div style="width: 20px; height: 12px; background: #ef4444; border-radius: 4px 4px 0 0; position: absolute; top: 30px; left: 40px;"></div>
+                            <!-- Negative Terminal -->
+                            <div style="width: 20px; height: 12px; background: #3b82f6; border-radius: 0 0 4px 4px; position: absolute; bottom: 30px; left: 40px;"></div>
+                            <!-- Battery Lines -->
+                            <div style="width: 5px; height: 30px; background: #ef4444; position: absolute; top: 42px; left: 30px; border-radius: 2px;"></div>
+                            <div style="width: 5px; height: 25px; background: #ef4444; position: absolute; top: 44px; left: 45px; border-radius: 2px;"></div>
+                            <div style="width: 5px; height: 20px; background: #3b82f6; position: absolute; top: 47px; left: 60px; border-radius: 2px;"></div>
+                            <!-- Plus Sign -->
+                            <div style="position: absolute; top: 25px; left: 43px; color: #ef4444; font-weight: bold; font-size: 18px; text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);">+</div>
+                            <!-- Minus Sign -->
+                            <div style="position: absolute; bottom: 25px; left: 45px; color: #3b82f6; font-weight: bold; font-size: 18px; text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);">-</div>
+                        </div>
+                        <div class="component-label" style="top: 125px; left: 35px; font-size: 14px;">${sourceVoltage}V CELL</div>
+                    </div>
+                    
+                    <!-- HD Switch -->
+                    <div class="component" style="top: 42%; left: 260px;">
+                        <div style="width: 80px; height: 60px; position: relative;">
+                            <!-- Switch Base -->
+                            <div style="width: 70px; height: 20px; background: #94a3b8; border-radius: 10px; position: absolute; top: 20px; left: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);"></div>
+                            <!-- Switch Lever -->
+                            <div style="width: 6px; height: 40px; background: #cbd5e1; position: absolute; top: -15px; left: 37px; transform: rotate(-25deg); transform-origin: bottom; box-shadow: 2px 2px 8px rgba(0,0,0,0.3);"></div>
+                            <!-- Switch Knob -->
+                            <div style="width: 16px; height: 16px; background: #ef4444; border-radius: 50%; position: absolute; top: -20px; left: 32px; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- HD Resistor -->
+                    <div class="component" style="top: 38%; left: 380px;">
+                        <div style="width: 140px; height: 50px; position: relative;">
+                            <!-- Resistor Body -->
+                            <div style="width: 100px; height: 30px; background: linear-gradient(45deg, #a16207, #ca8a04); border: 3px solid #713f12; border-radius: 15px; position: absolute; top: 10px; left: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.4);"></div>
+                            <!-- Resistor Bands -->
+                            <div style="width: 8px; height: 30px; background: #dc2626; position: absolute; top: 10px; left: 40px; border-radius: 2px;"></div>
+                            <div style="width: 8px; height: 30px; background: #000000; position: absolute; top: 10px; left: 58px; border-radius: 2px;"></div>
+                            <div style="width: 8px; height: 30px; background: #fbbf24; position: absolute; top: 10px; left: 76px; border-radius: 2px;"></div>
+                            <div style="width: 8px; height: 30px; background: #ea580c; position: absolute; top: 10px; left: 94px; border-radius: 2px;"></div>
+                            <!-- Resistor Leads -->
+                            <div style="width: 20px; height: 4px; background: #475569; position: absolute; top: 23px; left: 0px;"></div>
+                            <div style="width: 20px; height: 4px; background: #475569; position: absolute; top: 23px; left: 120px;"></div>
+                        </div>
+                        <div class="component-label" style="top: 65px; left: 50px;">${resistance >= 1000 ? (resistance/1000).toFixed(1) + 'kΩ' : resistance + 'Ω'}</div>
+                    </div>
+                `;
+            } else {
+                // Discharging mode - HD layout
+                circuitHTML += `
+                    <!-- HD Switch -->
+                    <div class="component" style="top: 42%; left: 280px;">
+                        <div style="width: 80px; height: 60px; position: relative;">
+                            <!-- Switch Base -->
+                            <div style="width: 70px; height: 20px; background: #94a3b8; border-radius: 10px; position: absolute; top: 20px; left: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);"></div>
+                            <!-- Switch Lever -->
+                            <div style="width: 6px; height: 40px; background: #cbd5e1; position: absolute; top: -15px; left: 37px; transform: rotate(-25deg); transform-origin: bottom; box-shadow: 2px 2px 8px rgba(0,0,0,0.3);"></div>
+                            <!-- Switch Knob -->
+                            <div style="width: 16px; height: 16px; background: #ef4444; border-radius: 50%; position: absolute; top: -20px; left: 32px; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- HD Resistor -->
+                    <div class="component" style="top: 38%; left: 400px;">
+                        <div style="width: 140px; height: 50px; position: relative;">
+                            <!-- Resistor Body -->
+                            <div style="width: 100px; height: 30px; background: linear-gradient(45deg, #a16207, #ca8a04); border: 3px solid #713f12; border-radius: 15px; position: absolute; top: 10px; left: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.4);"></div>
+                            <!-- Resistor Bands -->
+                            <div style="width: 8px; height: 30px; background: #dc2626; position: absolute; top: 10px; left: 40px; border-radius: 2px;"></div>
+                            <div style="width: 8px; height: 30px; background: #000000; position: absolute; top: 10px; left: 58px; border-radius: 2px;"></div>
+                            <div style="width: 8px; height: 30px; background: #fbbf24; position: absolute; top: 10px; left: 76px; border-radius: 2px;"></div>
+                            <div style="width: 8px; height: 30px; background: #ea580c; position: absolute; top: 10px; left: 94px; border-radius: 2px;"></div>
+                            <!-- Resistor Leads -->
+                            <div style="width: 20px; height: 4px; background: #475569; position: absolute; top: 23px; left: 0px;"></div>
+                            <div style="width: 20px; height: 4px; background: #475569; position: absolute; top: 23px; left: 120px;"></div>
+                        </div>
+                        <div class="component-label" style="top: 65px; left: 50px;">${resistance >= 1000 ? (resistance/1000).toFixed(1) + 'kΩ' : resistance + 'Ω'}</div>
+                    </div>
+                `;
+            }
+            
+            // Add Parallel Plate Capacitor
+            const plateWidth = 120;
+            const plateHeight = 80;
+            const plateSeparation = 40;
+            const capacitorX = circuitMode === 'charging' ? 560 : 120;
+            
+            circuitHTML += `
+                <!-- Parallel Plate Capacitor -->
+                <div class="component" style="top: 35%; left: ${capacitorX}px;">
+                    <div style="width: ${plateWidth}px; height: ${plateHeight + plateSeparation}px; position: relative;">
+                        <!-- Positive Plate -->
+                        <div class="plate" style="width: ${plateWidth}px; height: ${plateHeight/2}px; top: 0; left: 0; background: linear-gradient(45deg, #ef4444, #dc2626);">
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 16px;">+</div>
+                        </div>
+                        
+                        <!-- Negative Plate -->
+                        <div class="plate" style="width: ${plateWidth}px; height: ${plateHeight/2}px; top: ${plateHeight/2 + plateSeparation}px; left: 0; background: linear-gradient(45deg, #3b82f6, #1d4ed8);">
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 16px;">-</div>
+                        </div>
+                        
+                        <!-- Electric Field -->
+                        <div class="electric-field" style="width: ${plateWidth}px; height: ${plateSeparation}px; top: ${plateHeight/2}px; left: 0; opacity: ${chargeLevel * 0.6};"></div>
+                        
+                        <!-- Electric Field Lines -->
+                        ${generateFieldLines(plateWidth, plateHeight, plateSeparation, chargeLevel)}
+                        
+                        <!-- Positive Charges -->
+                        ${generateCharges(plateWidth, plateHeight/2, capacitorX, 35, true, chargeLevel)}
+                        
+                        <!-- Negative Charges -->
+                        ${generateCharges(plateWidth, plateHeight/2, capacitorX, 35 + plateHeight/2 + plateSeparation, false, chargeLevel)}
+                    </div>
+                    <div class="component-label" style="top: ${plateHeight + plateSeparation + 10}px; left: ${plateWidth/2 - 30}px;">${capacitance}μF</div>
+                </div>
+            `;
+            
+            // Add highly visible yellow electrons
+            if (isRunning && !isPaused && Math.abs(circuitCurrent) > 0.001 && !isFullyDischarged) {
+                for (let i = 0; i < 12; i++) {
+                    const offset = (i * 8) % 100 / 100;
+                    const pos = (electronOffset / 100 + offset) % 1;
+                    circuitHTML += `
+                        <div class="electron" style="top: 44%; left: ${50 + (width - 100) * pos}px;"></div>
+                        <div class="electron" style="top: 56%; left: ${50 + (width - 100) * (1 - pos)}px;"></div>
+                    `;
+                }
+            }
+            
+            // Add measurement indicators
+            circuitHTML += `
+                <div class="current-indicator" style="top: 30%; left: 200px;">
+                    Current: ${(circuitCurrent * 1000).toFixed(2)} mA
+                </div>
+                <div class="voltage-indicator" style="top: 70%; left: 200px;">
+                    Voltage: ${capacitorVoltage.toFixed(2)} V
+                </div>
+            `;
+            
+            // Add status message
+            if (isFullyDischarged) {
+                circuitHTML += `
+                    <div class="current-indicator" style="top: 20px; left: 50%; transform: translateX(-50%); background: rgba(239, 68, 68, 0.9); color: white; font-size: 16px; padding: 12px 24px;">
+                        ⚡ CAPACITOR FULLY DISCHARGED - NO CURRENT FLOW
+                    </div>
+                `;
+            }
+            
+            circuitContainer.innerHTML = circuitHTML;
+        }
+        
+        // Generate electric field lines
+        function generateFieldLines(plateWidth, plateHeight, plateSeparation, intensity) {
+            let fieldLinesHTML = '';
+            const numLines = 7;
+            
+            for (let i = 1; i <= numLines; i++) {
+                const xPos = (i / (numLines + 1)) * plateWidth;
+                fieldLinesHTML += `
+                    <div class="field-line" style="width: 2px; height: ${plateSeparation}px; top: ${plateHeight/2}px; left: ${xPos}px; opacity: ${intensity};"></div>
+                `;
+            }
+            
+            return fieldLinesHTML;
+        }
+        
+        // Generate positive and negative charges on plates
+        function generateCharges(plateWidth, plateHeight, capacitorX, plateY, isPositive, intensity) {
+            let chargesHTML = '';
+            const chargesPerRow = 6;
+            const chargesPerColumn = 3;
+            const chargeSpacingX = plateWidth / (chargesPerRow + 1);
+            const chargeSpacingY = plateHeight / (chargesPerColumn + 1);
+            
+            for (let row = 1; row <= chargesPerRow; row++) {
+                for (let col = 1; col <= chargesPerColumn; col++) {
+                    const x = capacitorX + row * chargeSpacingX;
+                    const y = plateY + col * chargeSpacingY;
+                    
+                    if (isPositive) {
+                        chargesHTML += `<div class="positive-charge" style="top: ${y}px; left: ${x}px; opacity: ${intensity};"></div>`;
+                    } else {
+                        chargesHTML += `<div class="negative-charge" style="top: ${y}px; left: ${x}px; opacity: ${intensity};"></div>`;
+                    }
+                }
+            }
+            
+            return chargesHTML;
+        }
+        
+        // Update simulation
+        function updateSimulation(deltaTime) {
+            if (!isRunning || isPaused) return;
+            
+            const timeConstant = resistance * (capacitance / 1000000);
+            const scaledTime = time / 1000;
+            
+            if (circuitMode === 'charging') {
+                capacitorVoltage = sourceVoltage * (1 - Math.exp(-scaledTime / timeConstant));
+                circuitCurrent = (sourceVoltage - capacitorVoltage) / resistance;
+                storedCharge = capacitance * capacitorVoltage;
+                electricField = capacitorVoltage / 0.02; // Assuming 2cm plate separation
+                
+                if (capacitorVoltage >= sourceVoltage * 0.999) {
+                    capacitorVoltage = sourceVoltage;
+                    circuitCurrent = 0;
+                    isFullyDischarged = false;
+                }
+            } else {
+                capacitorVoltage = sourceVoltage * Math.exp(-scaledTime / timeConstant);
+                circuitCurrent = -capacitorVoltage / resistance;
+                storedCharge = capacitance * capacitorVoltage;
+                electricField = capacitorVoltage / 0.02;
+                
+                if (capacitorVoltage <= 0.001) {
+                    capacitorVoltage = 0;
+                    circuitCurrent = 0;
+                    electricField = 0;
+                    isFullyDischarged = true;
+                }
+            }
+            
+            time += deltaTime * animationSpeed;
+            electronOffset += animationSpeed * 3;
+            updateDisplay();
+            drawCircuit();
+        }
+        
+        // Animation loop
+        function animate() {
+            updateSimulation(16);
+            requestAnimationFrame(animate);
+        }
+        
+        // Initialize
+        updateTimeConstant();
+        setCircuitMode('charging');
+        animate();
+    </script>
+</body>
+</html>

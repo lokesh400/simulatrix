@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Polarization Demo</title>
+<style>
+  body { margin:0; background:#111; color:#eee; font-family:sans-serif; overflow:hidden; }
+  canvas { display:block; background:#222; margin:0 auto; }
+  #controls {
+    position:absolute; top:10px; left:10px; background:rgba(34,34,34,0.9); 
+    padding:15px; border-radius:8px; border:1px solid #555;
+    font-size:14px; backdrop-filter: blur(5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+  #controls label { 
+    display:block; margin-top:8px; 
+    color: #aaa;
+    font-weight: 500;
+  }
+  input[type=range] { 
+    width:150px;
+    margin-top: 5px;
+    background: #333;
+  }
+  select { 
+    margin-top:5px; 
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 4px;
+    border-radius: 4px;
+  }
+  select:focus {
+    outline: none;
+    border-color: #4a90e2;
+  }
+</style>
+</head>
+<body>
+<div id="controls">
+  <label>Polarizer 1 Angle: <span id="angle1Val">0°</span></label>
+  <input type="range" id="angle1" min="0" max="180" value="0">
+  <label>Polarizer 2 Angle: <span id="angle2Val">90°</span></label>
+  <input type="range" id="angle2" min="0" max="180" value="90">
+  <label>View Mode: 
+    <select id="viewMode">
+      <option value="wave">Wavefronts</option>
+      <option value="arrow">E-field Arrows</option>
+    </select>
+  </label>
+</div>
+
+<canvas id="canvas"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const sourceX = 150;
+const polarizer1X = 400;
+const polarizer2X = 650;
+const screenX = 950;
+const polarizerHeight = 180;
+const polarizerWidth = 20;
+const polarizerDepth = 40; // Added depth for 3D effect
+const waveLength = 80;
+const waveAmplitude = 50;
+
+let angle1 = 0;
+let angle2 = 90;
+let viewMode = 'wave';
+
+document.getElementById('angle1').addEventListener('input', e=>{
+  angle1 = Number(e.target.value);
+  document.getElementById('angle1Val').textContent = angle1+'°';
+});
+document.getElementById('angle2').addEventListener('input', e=>{
+  angle2 = Number(e.target.value);
+  document.getElementById('angle2Val').textContent = angle2+'°';
+});
+document.getElementById('viewMode').addEventListener('change', e=>{
+  viewMode = e.target.value;
+});
+
+let t = 0;
+// function drawPolarizer(x, angle, label){
+//   ctx.save();
+//   ctx.translate(x, canvas.height/2);
+  
+//   // Draw the back face
+//   ctx.save();
+//   ctx.rotate(angle*Math.PI/180);
+//   ctx.fillStyle = 'rgba(100,100,100,0.3)';
+//   ctx.fillRect(-polarizerWidth/2 + polarizerDepth, -polarizerHeight/2 - polarizerDepth/2, 
+//                polarizerWidth, polarizerHeight);
+  
+//   // Draw vertical lines on back face
+//   ctx.strokeStyle = 'rgba(150,150,150,0.3)';
+//   for(let i=-polarizerWidth/2 + polarizerDepth; i<=polarizerWidth/2 + polarizerDepth; i+=8){
+//     ctx.beginPath();
+//     ctx.moveTo(i, -polarizerHeight/2 - polarizerDepth/2);
+//     ctx.lineTo(i, polarizerHeight/2 - polarizerDepth/2);
+//     ctx.stroke();
+//   }
+//   ctx.restore();
+
+//   // Draw front face
+//   ctx.rotate(angle*Math.PI/180);
+//   ctx.fillStyle = 'rgba(255,255,255,0.15)';
+//   ctx.fillRect(-polarizerWidth/2, -polarizerHeight/2, polarizerWidth, polarizerHeight);
+  
+//   // Draw vertical lines on front face
+//   ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+//   for(let i=-polarizerWidth/2; i<=polarizerWidth/2; i+=8){
+//     ctx.beginPath();
+//     ctx.moveTo(i, -polarizerHeight/2);
+//     ctx.lineTo(i, polarizerHeight/2);
+//     ctx.stroke();
+//   }
+  
+//   ctx.restore();
+  
+//   // Draw label
+//   ctx.fillStyle='#fff';
+//   ctx.fillText(label, x-40, canvas.height/2 - polarizerHeight/2 -10);
+// }
+
+function drawPolarizer(x, angle, label){
+  ctx.save();
+  ctx.translate(x, canvas.height/2);
+
+  const dx = polarizerDepth; // depth offset
+
+  // --- FRONT FACE ---
+  ctx.rotate(angle*Math.PI/180);
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.fillRect(-polarizerWidth/2, -polarizerHeight/2, polarizerWidth, polarizerHeight);
+
+  // vertical lines on front face
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  for(let i=-polarizerWidth/2; i<=polarizerWidth/2; i+=8){
+    ctx.beginPath();
+    ctx.moveTo(i, -polarizerHeight/2);
+    ctx.lineTo(i, polarizerHeight/2);
+    ctx.stroke();
+  }
+
+
+  ctx.restore();
+
+  // Label
+  ctx.fillStyle='#fff';
+  ctx.fillText(label, x-40, canvas.height/2 - polarizerHeight/2 -10);
+}
+
+
+function drawScreen(x){
+  ctx.fillStyle='#444';
+  ctx.fillRect(x-5, canvas.height/2 - polarizerHeight/2, 10, polarizerHeight);
+  ctx.fillStyle='#fff';
+  ctx.fillText('Screen', x-30, canvas.height/2 - polarizerHeight/2 -10);
+}
+
+function drawSource(){
+  ctx.fillStyle='yellow';
+  ctx.beginPath();
+  ctx.arc(sourceX, canvas.height/2, 20,0,2*Math.PI);
+  ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.fillText('Source', sourceX-20, canvas.height/2-30);
+}
+
+function drawWavefronts(){
+  const transmittedAmplitude = Math.cos((angle2-angle1)*Math.PI/180);
+  const amp1 = waveAmplitude * Math.cos(angle1*Math.PI/180);
+  const amp2 = amp1 * transmittedAmplitude;
+
+  ctx.strokeStyle='cyan';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let x=sourceX;x<screenX;x+=2){
+    let y = canvas.height/2;
+    let phase = (x-sourceX)/waveLength*2*Math.PI - t;
+    let amp = waveAmplitude;
+    if(x>polarizer1X) amp *= Math.cos(angle1*Math.PI/180);
+    if(x>polarizer2X) amp *= transmittedAmplitude;
+    y = canvas.height/2 - amp*Math.sin(phase);
+    if(x===sourceX) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+}
+
+function drawArrows(){
+  const transmittedAmplitude = Math.cos((angle2-angle1)*Math.PI/180);
+  const amp1 = waveAmplitude * Math.cos(angle1*Math.PI/180);
+  const amp2 = amp1 * transmittedAmplitude;
+
+  // draw arrow at polarizer 1
+  ctx.strokeStyle='cyan';
+  ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.moveTo(sourceX, canvas.height/2);
+  ctx.lineTo(polarizer1X, canvas.height/2 - amp1);
+  ctx.stroke();
+  ctx.fillText('E1', polarizer1X-20, canvas.height/2 - amp1 -10);
+
+  // arrow after polarizer 2
+  ctx.beginPath();
+  ctx.moveTo(polarizer1X, canvas.height/2 - amp1);
+  ctx.lineTo(polarizer2X, canvas.height/2 - amp2);
+  ctx.stroke();
+  ctx.fillText('E2', polarizer2X-20, canvas.height/2 - amp2 -10);
+
+  // arrow to screen
+  ctx.beginPath();
+  ctx.moveTo(polarizer2X, canvas.height/2 - amp2);
+  ctx.lineTo(screenX, canvas.height/2 - amp2);
+  ctx.stroke();
+  ctx.fillText('Eout', screenX-30, canvas.height/2 - amp2 -10);
+
+  // intensity bar
+  ctx.fillStyle='yellow';
+  ctx.fillRect(screenX+20, canvas.height/2 - amp2, 20, amp2*2);
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  drawSource();
+  drawPolarizer(polarizer1X, angle1, 'P1');
+  drawPolarizer(polarizer2X, angle2, 'P2');
+  drawScreen(screenX);
+
+  if(viewMode==='wave') drawWavefronts();
+  else drawArrows();
+
+  t+=0.1;
+  requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+</body>
+</html>

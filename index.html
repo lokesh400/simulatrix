@@ -1,216 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulatrix - Interactive Physics Simulations</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #4a90e2;
-            --secondary-color: #2c3e50;
-            --accent-color: #e74c3c;
-            --background-color: #f8f9fa;
-        }
-        
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--background-color);
-            color: var(--secondary-color);
-        }
-
-        .hero {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 4rem 0;
-            margin-bottom: 2rem;
-        }
-
-        .category-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-            margin-bottom: 2rem;
-            overflow: hidden;
-        }
-
-        .category-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .category-header {
-            background: var(--primary-color);
-            color: white;
-            padding: 1rem;
-            font-size: 1.25rem;
-        }
-
-        .simulation-link {
-            color: var(--secondary-color);
-            text-decoration: none;
-            padding: 0.75rem 1rem;
-            display: block;
-            border-bottom: 1px solid #eee;
-            transition: background-color 0.2s ease;
-        }
-
-        .simulation-link:hover {
-            background-color: #f8f9fa;
-            color: var(--primary-color);
-        }
-
-        .simulation-link i {
-            margin-right: 0.5rem;
-            color: var(--primary-color);
-        }
-
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .nav-link {
-            color: white !important;
-            opacity: 0.9;
-        }
-
-        .nav-link:hover {
-            opacity: 1;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulatrix - Physics Simulations</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+body {background:#0d1117; color:white; font-family:sans-serif;}
+.navbar {background-color:#1f2937;}
+.hero {padding:80px 0; background: linear-gradient(135deg,#1a2a6c,#2d1a6c,#6c1a2a); color:white;}
+.hero h1 {font-weight:700;}
+.hero p {font-size:1.2rem;}
+.category-card {background:#1f2937; border-radius:15px; padding:20px; margin-bottom:30px; transition:0.3s; height:100%;}
+.category-card:hover {transform: translateY(-5px); box-shadow:0 10px 25px rgba(0,0,0,0.5);}
+.category-header {font-size:1.3rem; font-weight:600; margin-bottom:15px; display:flex; align-items:center; gap:10px; color:#facc15;}
+.simulation-link {display:flex; align-items:center; gap:10px; font-size:1.05rem; color:white; text-decoration:none; margin-bottom:8px; padding:6px 8px; border-radius:8px; transition:0.3s;}
+.simulation-link i {width:20px; text-align:center;}
+.simulation-link:hover {color:#111; background:#facc15; text-decoration:none; box-shadow:0 5px 15px rgba(250,204,21,0.5);}
+footer {background:#111; text-align:center; padding:20px; margin-top:50px;}
+</style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--secondary-color);">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-atom me-2"></i>
-                Simulatrix
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-home"></i> Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#simulations"><i class="fas fa-play"></i> Simulations</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
 
-    <!-- Hero Section -->
-    <div class="hero">
-        <div class="container text-center">
-            <h1 class="display-4 mb-4">Welcome to Simulatrix</h1>
-            <p class="lead mb-4">Explore physics concepts through interactive 3D simulations</p>
-            <a href="#simulations" class="btn btn-light btn-lg">
-                <i class="fas fa-play-circle me-2"></i>Start Learning
-            </a>
-        </div>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand" href="#"><i class="fas fa-atom me-2"></i>Simulatrix</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero text-center">
+  <div class="container">
+    <h1 class="display-4 mb-4">Welcome to Simulatrix</h1>
+    <p class="lead mb-4">Explore physics concepts through interactive 3D simulations</p>
+  </div>
+</div>
+
+<!-- Simulations Section -->
+<section id="simulations" class="container py-5">
+  <h2 class="text-center mb-5">Interactive Simulations</h2>
+  <div class="row g-4">
+
+    <!-- Kinematics -->
+    <div class="col-md-4">
+      <div class="category-card">
+        <div class="category-header"><i class="fas fa-running"></i>Kinematics</div>
+        <a href="./kinematics/freefall.html" class="simulation-link"><i class="fas fa-arrow-down"></i>Free Fall</a>
+        <a href="./kinematics/projectile.html" class="simulation-link"><i class="fas fa-bullseye"></i>Projectile Motion</a>
+        <a href="./kinematics/circular.html" class="simulation-link"><i class="fas fa-sync"></i>Circular Motion</a>
+      </div>
     </div>
 
-    <!-- Simulations Section -->
-    <section id="simulations" class="container py-5">
-        <h2 class="text-center mb-5">Interactive Simulations</h2>
-        
-        <div class="row">
-            <!-- Kinematics Category -->
-            <div class="col-md-4">
-                <div class="category-card">
-                    <div class="category-header">
-                        <i class="fas fa-running me-2"></i>
-                        Kinematics
-                    </div>
-                    <div class="category-content">
-                        <a href="./kinematics/freefall.html" class="simulation-link">
-                            <i class="fas fa-arrow-down"></i>Free Fall
-                        </a>
-                        <a href="./kinematics/projectile.html" class="simulation-link">
-                            <i class="fas fa-bullseye"></i>Projectile Motion
-                        </a>
-                        <a href="./kinematics/circular.html" class="simulation-link">
-                            <i class="fas fa-sync"></i>Circular Motion
-                        </a>
-                    </div>
-                </div>
-            </div>
+    <!-- SHM -->
+    <div class="col-md-4">
+      <div class="category-card">
+        <div class="category-header"><i class="fas fa-wave-square"></i>Simple Harmonic Motion</div>
+        <a href="./shm/shm.html" class="simulation-link"><i class="fas fa-infinity"></i>Simple SHM</a>
+        <a href="./shm/vertical-shm.html" class="simulation-link"><i class="fas fa-arrows-alt-v"></i>Vertical SHM</a>
+      </div>
+    </div>
 
-            <!-- SHM Category -->
-            <div class="col-md-4">
-                <div class="category-card">
-                    <div class="category-header">
-                        <i class="fas fa-wave-square me-2"></i>
-                        Simple Harmonic Motion
-                    </div>
-                    <div class="category-content">
-                        <a href="./shm/shm.html" class="simulation-link">
-                            <i class="fas fa-infinity"></i>Simple SHM
-                        </a>
-                        <a href="./shm/vertical-shm.html" class="simulation-link">
-                            <i class="fas fa-arrows-alt-v"></i>Vertical SHM
-                        </a>
-                    </div>
-                </div>
-            </div>
+    <!-- Magnetism -->
+    <div class="col-md-4">
+      <div class="category-card">
+        <div class="category-header"><i class="fas fa-magnet"></i>Magnetism</div>
+        <a href="./magnetism/induction.html" class="simulation-link"><i class="fas fa-bolt"></i>Magnetic Induction</a>
+        <a href="./magnetism/mutual-inductance.html" class="simulation-link"><i class="fas fa-exchange-alt"></i>Mutual Inductance</a>
+        <a href="./magnetism/lenz-law.html" class="simulation-link"><i class="fas fa-equals"></i>Lenz's Law</a>
+      </div>
+    </div>
 
-            <!-- Magnetism Category -->
-            <div class="col-md-4">
-                <div class="category-card">
-                    <div class="category-header">
-                        <i class="fas fa-magnet me-2"></i>
-                        Magnetism
-                    </div>
-                    <div class="category-content">
-                        <a href="./magnetism/induction.html" class="simulation-link">
-                            <i class="fas fa-bolt"></i>Magnetic Induction
-                        </a>
-                        <a href="./magnetism/mutual-inductance.html" class="simulation-link">
-                            <i class="fas fa-exchange-alt"></i>Mutual Inductance
-                        </a>
-                        <a href="./magnetism/lenz-law.html" class="simulation-link">
-                            <i class="fas fa-equals"></i>Lenz's Law
-                        </a>
-                    </div>
-                </div>
-            </div>
+    <!-- Waves -->
+    <div class="col-md-4">
+      <div class="category-card">
+        <div class="category-header"><i class="fas fa-water"></i>Waves</div>
+        <a href="./waves/wave-on-string.html" class="simulation-link"><i class="fas fa-bolt"></i>Wave On String</a>
+        <a href="./waves/wave-interference.html" class="simulation-link"><i class="fas fa-exchange-alt"></i>Wave Interference</a>
+        <a href="./waves/water-ripples.html" class="simulation-link"><i class="fas fa-equals"></i>Water-ripples</a>
+      </div>
+    </div>
 
-            <div class="col-md-4">
-                <div class="category-card">
-                    <div class="category-header">
-                        <i class="fas fa-magnet me-2"></i>
-                        Waves
-                    </div>
-                    <div class="category-content">
-                        <a href="./waves/wave-on-string.html" class="simulation-link">
-                            <i class="fas fa-bolt"></i>Wave On String
-                        </a>
-                        <a href="./waves/wave-interference.html" class="simulation-link">
-                            <i class="fas fa-exchange-alt"></i>Wave Interference
-                        </a>
-                        <a href="./waves/water-ripples.html" class="simulation-link">
-                            <i class="fas fa-equals"></i>Water-ripples
-                        </a>
-                    </div>
-                </div>
-            </div>
+    <!-- Electrostatics -->
+    <div class="col-md-4">
+      <div class="category-card">
+        <div class="category-header"><i class="fas fa-bolt"></i>Electrostatics</div>
+        <a href="./electrostatics/electric-field.html" class="simulation-link"><i class="fas fa-exchange-alt"></i>Electric Field</a>
+        <a href="./electrostatics/equipotential-surface.html" class="simulation-link"><i class="fas fa-equals"></i>Equipotential Surfaces</a>
+      </div>
+    </div>
 
-        </div>
-    </section>
+    <!-- Ray Optics -->
+    <div class="col-md-4">
+      <div class="category-card">
+        <div class="category-header"><i class="fas fa-lightbulb"></i>Ray Optics</div>
+        <a href="./rayoptics/image-formation.html" class="simulation-link"><i class="fas fa-bolt"></i>Lens</a>
+        <a href="./rayoptics/image-mirror.html" class="simulation-link"><i class="fas fa-bolt"></i>Mirror</a>
+        <a href="./rayoptics/refraction-tir.html" class="simulation-link"><i class="fas fa-exchange-alt"></i>Refraction & TIR</a>
+        <a href="./rayoptics/prism-light.html" class="simulation-link"><i class="fas fa-equals"></i>Prism Light Dispersion</a>
+      </div>
+    </div>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container text-center">
-            <p>© 2025 Simulatrix</p>
-        </div>
-    </footer>
+    <!-- Wave Optics -->
+    <div class="col-md-4">
+      <div class="category-card">
+        <div class="category-header"><i class="fas fa-water"></i>Wave Optics</div>
+        <a href="./waveoptics/ydse.html" class="simulation-link"><i class="fas fa-bolt"></i>Young's Double-Slit Experiment</a>
+        <a href="./waveoptics/diffraction.html" class="simulation-link"><i class="fas fa-bolt"></i>Diffraction</a>
+        <a href="./waves/wave-interference.html" class="simulation-link"><i class="fas fa-exchange-alt"></i>Interference</a>
+        <a href="./waveoptics/polarizer.html" class="simulation-link"><i class="fas fa-equals"></i>Polarizer</a>
+      </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Current Electricity -->
+    <div class="col-md-4">
+      <div class="category-card">
+        <div class="category-header"><i class="fas fa-bolt"></i>Current Electricity</div>
+        <a href="./currentelectricity/charging-discharging.html" class="simulation-link"><i class="fas fa-bolt"></i>Charging & Discharging Of Capacitor</a>
+        <a href="./currentelectricity/resistor.html" class="simulation-link"><i class="fas fa-bolt"></i>Resistor</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 Simulatrix</p>
+</footer>
+
 </body>
 </html>

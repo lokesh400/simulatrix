@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Mirror Ray Diagram</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: #FF5722;
+            box-shadow: 0 0 15px rgba(255, 87, 34, 0.5);
+        }
+        
+        .info-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #FF5722;
+        }
+        
+        .info-box h3 {
+            margin-bottom: 15px;
+            color: #FF5722;
+        }
+        
+        .info-box ul {
+            padding-left: 20px;
+        }
+        
+        .info-box li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .object-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+        
+        .object-info span {
+            font-weight: bold;
+            color: #FF5722;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            text-align: center;
+            font-style: italic;
+            opacity: 0.8;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 10px;
+            border-radius: 3px;
+        }
+        
+        .distance-slider {
+            width: 100%;
+            margin: 15px 0;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .slider-container label {
+            min-width: 120px;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #FF5722;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 87, 34, 0.5);
+        }
+        
+        .image-details {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .info-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .object-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="mirrorDiagram"></canvas>
+        </div>
+        
+        <div class="controls">
+            <button id="concaveBtn" class="active">Concave Mirror</button>
+            <button id="convexBtn">Convex Mirror</button>
+            <button id="resetBtn">Reset Position</button>
+        </div>
+        
+        <div class="distance-slider">
+            <div class="slider-container">
+                <label for="objectDistanceSlider">Object Distance:</label>
+                <input type="range" id="objectDistanceSlider" min="0.1" max="10" step="0.1" value="2">
+                <span id="sliderValue">2f</span>
+            </div>
+        </div>
+        
+        <div class="object-info">
+            <div>Object Position: <span id="objectPosition">Beyond C</span></div>
+            <div>Image Type: <span id="imageType">Real, Inverted</span></div>
+            <div>Magnification: <span id="magnification">1.0x</span></div>
+        </div>
+        
+        <div class="image-details">
+            <div><strong>Image Characteristics:</strong> <span id="imageDetails">Real, Inverted, Same Size</span></div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #FF5252;"></div>
+                <span>Object</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #2196F3;"></div>
+                <span>Parallel Ray</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #4CAF50;"></div>
+                <span>Central Ray</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #FF9800;"></div>
+                <span>Focal Ray</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #9C27B0;"></div>
+                <span>Image</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: transparent; border: 1px dashed white;"></div>
+                <span>Virtual Ray</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Get canvas and context
+        const canvas = document.getElementById('mirrorDiagram');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas dimensions
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            drawMirrorDiagram();
+        }
+        
+        // Initial variables
+        let mirrorType = 'concave'; // 'concave' or 'convex'
+        let objectDistance = 2; // in focal lengths
+        let objectHeight = 0.8; // in focal lengths
+        let focalLength = 120; // pixels
+        let isDragging = false;
+        
+        // Mirror position (center of canvas)
+        let mirrorX, mirrorY;
+        
+        // Object position
+        let objectX, objectY;
+        
+        // Resize canvas when window is resized
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Initialize
+        resizeCanvas();
+        
+        // Draw the mirror diagram
+        function drawMirrorDiagram() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate positions
+            mirrorX = canvas.width / 2;
+            mirrorY = canvas.height / 2;
+            
+            // Update object position based on distance
+            // For very large distances, position object off-screen
+            if (objectDistance > 8) {
+                objectX = -100; // Position off-screen to simulate infinity
+            } else {
+                objectX = mirrorX - objectDistance * focalLength;
+            }
+            objectY = mirrorY - objectHeight * focalLength;
+            
+            // Draw principal axis
+            ctx.beginPath();
+            ctx.moveTo(50, mirrorY);
+            ctx.lineTo(canvas.width - 50, mirrorY);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // Draw mirror
+            drawMirror();
+            
+            // Draw focal points and center
+            drawReferencePoints();
+            
+            // Draw object (if not at infinity)
+            if (objectDistance <= 8) {
+                drawObject();
+            } else {
+                // Show indication for object at infinity
+                ctx.fillStyle = '#FF5252';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText('Object at infinity', 60, mirrorY - 20);
+            }
+            
+            // Draw rays
+            drawRays();
+            
+            // Update object info
+            updateObjectInfo();
+        }
+        
+        // Draw the mirror
+        function drawMirror() {
+            const mirrorHeight = 220;
+            const mirrorCurvature = 80; // Smaller curvature like lenses
+            
+            ctx.beginPath();
+            if (mirrorType === 'concave') {
+                // Draw concave mirror with smaller curvature
+                ctx.moveTo(mirrorX - mirrorCurvature, mirrorY - mirrorHeight/2);
+                ctx.bezierCurveTo(
+                    mirrorX, mirrorY - mirrorHeight/2,
+                    mirrorX, mirrorY + mirrorHeight/2,
+                    mirrorX - mirrorCurvature, mirrorY + mirrorHeight/2
+                );
+                
+                // Draw polished side (reflective surface) with highlight
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Add highlight to show polished side
+                ctx.beginPath();
+                ctx.moveTo(mirrorX - mirrorCurvature + 5, mirrorY - mirrorHeight/2 + 10);
+                ctx.bezierCurveTo(
+                    mirrorX - 15, mirrorY - mirrorHeight/2 + 10,
+                    mirrorX - 15, mirrorY + mirrorHeight/2 - 10,
+                    mirrorX - mirrorCurvature + 5, mirrorY + mirrorHeight/2 - 10
+                );
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Draw back side (non-reflective)
+                ctx.beginPath();
+                ctx.moveTo(mirrorX - mirrorCurvature, mirrorY - mirrorHeight/2);
+                ctx.lineTo(mirrorX - mirrorCurvature - 15, mirrorY - mirrorHeight/2);
+                ctx.lineTo(mirrorX - mirrorCurvature - 15, mirrorY + mirrorHeight/2);
+                ctx.lineTo(mirrorX - mirrorCurvature, mirrorY + mirrorHeight/2);
+                ctx.strokeStyle = 'rgba(150, 150, 150, 0.7)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            } else {
+                // Draw convex mirror with smaller curvature
+                ctx.moveTo(mirrorX + mirrorCurvature, mirrorY - mirrorHeight/2);
+                ctx.bezierCurveTo(
+                    mirrorX, mirrorY - mirrorHeight/2,
+                    mirrorX, mirrorY + mirrorHeight/2,
+                    mirrorX + mirrorCurvature, mirrorY + mirrorHeight/2
+                );
+                
+                // Draw polished side (reflective surface) with highlight
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Add highlight to show polished side
+                ctx.beginPath();
+                ctx.moveTo(mirrorX + mirrorCurvature - 5, mirrorY - mirrorHeight/2 + 10);
+                ctx.bezierCurveTo(
+                    mirrorX + 15, mirrorY - mirrorHeight/2 + 10,
+                    mirrorX + 15, mirrorY + mirrorHeight/2 - 10,
+                    mirrorX + mirrorCurvature - 5, mirrorY + mirrorHeight/2 - 10
+                );
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Draw back side (non-reflective)
+                ctx.beginPath();
+                ctx.moveTo(mirrorX + mirrorCurvature, mirrorY - mirrorHeight/2);
+                ctx.lineTo(mirrorX + mirrorCurvature + 15, mirrorY - mirrorHeight/2);
+                ctx.lineTo(mirrorX + mirrorCurvature + 15, mirrorY + mirrorHeight/2);
+                ctx.lineTo(mirrorX + mirrorCurvature, mirrorY + mirrorHeight/2);
+                ctx.strokeStyle = 'rgba(150, 150, 150, 0.7)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            // Add mirror label
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = '16px Arial';
+            ctx.fillText(mirrorType === 'concave' ? 'Concave Mirror' : 'Convex Mirror', mirrorX - 60, mirrorY - 150);
+            
+            // Add polished side indicator
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.font = '12px Arial';
+            if (mirrorType === 'concave') {
+                ctx.fillText('Polished Side →', mirrorX - 100, mirrorY - mirrorHeight/2 - 10);
+            } else {
+                ctx.fillText('← Polished Side', mirrorX + 40, mirrorY - mirrorHeight/2 - 10);
+            }
+        }
+        
+        // Draw focal points and center
+        function drawReferencePoints() {
+            // Focal point (F)
+            ctx.beginPath();
+            ctx.arc(mirrorX - focalLength, mirrorY, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFD700';
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.fillText('F', mirrorX - focalLength - 10, mirrorY - 10);
+            
+            // Center of curvature (C)
+            ctx.beginPath();
+            ctx.arc(mirrorX - 2 * focalLength, mirrorY, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFA500';
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillText('C', mirrorX - 2 * focalLength - 10, mirrorY - 10);
+            
+            // Pole (P)
+            ctx.beginPath();
+            ctx.arc(mirrorX, mirrorY, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#4CAF50';
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillText('P', mirrorX + 5, mirrorY - 10);
+        }
+        
+        // Draw the object
+        function drawObject() {
+            // Object arrow
+            ctx.beginPath();
+            ctx.moveTo(objectX, mirrorY);
+            ctx.lineTo(objectX, objectY);
+            ctx.strokeStyle = '#FF5252';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            
+            // Arrow head
+            ctx.beginPath();
+            ctx.moveTo(objectX, objectY);
+            ctx.lineTo(objectX - 8, objectY + 15);
+            ctx.lineTo(objectX + 8, objectY + 15);
+            ctx.closePath();
+            ctx.fillStyle = '#FF5252';
+            ctx.fill();
+            
+            // Object base
+            ctx.beginPath();
+            ctx.moveTo(objectX - 8, mirrorY);
+            ctx.lineTo(objectX + 8, mirrorY);
+            ctx.strokeStyle = '#FF5252';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Object label
+            ctx.fillStyle = '#FF5252';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('Object', objectX - 25, objectY - 15);
+        }
+        
+        // Draw the rays
+        function drawRays() {
+            // For concave mirror with object at infinity
+            if (mirrorType === 'concave' && objectDistance > 8) {
+                drawRaysAtInfinity();
+                return;
+            }
+            
+            // Calculate image position using mirror equation
+            const u = objectDistance * focalLength; // object distance in pixels
+            let v, imageHeight, imageX, imageY;
+            
+            if (mirrorType === 'concave') {
+                // Handle special case when object is exactly at focal point
+                if (Math.abs(objectDistance - 1) < 0.05) {
+                    drawRaysAtFocalPoint();
+                    return;
+                }
+                
+                // Correct mirror equation: 1/f = 1/u + 1/v
+                v = (u * focalLength) / (u - focalLength);
+                imageHeight = (objectHeight * focalLength) * (Math.abs(v) / u);
+                imageX = mirrorX - v; // For mirrors, image is on the same side
+                // For inverted images, imageY should be BELOW the principal axis
+                imageY = mirrorY + (v > 0 ? imageHeight : -imageHeight);
+            } else {
+                // For convex mirror, image is always virtual, upright, and behind the mirror
+                v = (u * focalLength) / (u + focalLength);
+                imageHeight = (objectHeight * focalLength) * (Math.abs(v) / u);
+                imageX = mirrorX + Math.abs(v); // Virtual image behind mirror
+                imageY = mirrorY - imageHeight; // Upright image
+            }
+            
+            // Ray 1: Parallel to principal axis (blue)
+            ctx.beginPath();
+            ctx.moveTo(objectX, objectY);
+            
+            if (mirrorType === 'concave') {
+                // For concave mirror, ray reflects through focal point
+                // Calculate reflection point on mirror
+                const mirrorY1 = mirrorY - (mirrorY - objectY) * 0.7;
+                ctx.lineTo(mirrorX, mirrorY1);
+                if (objectDistance > 1) {
+                    // Real image - ray goes to image through focal point
+                    ctx.lineTo(mirrorX - focalLength, mirrorY);
+                    ctx.lineTo(imageX, imageY);
+                } else {
+                    // Virtual image - ray appears to come from focal point
+                    ctx.setLineDash([5, 5]);
+                    ctx.lineTo(mirrorX - focalLength, mirrorY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Draw extension backward to virtual image
+                    ctx.beginPath();
+                    ctx.moveTo(mirrorX, mirrorY1);
+                    ctx.lineTo(imageX, imageY);
+                    ctx.strokeStyle = '#2196F3';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            } else {
+                // For convex mirror, ray appears to come from focal point behind mirror
+                const mirrorY1 = mirrorY - (mirrorY - objectY) * 0.7;
+                ctx.lineTo(mirrorX, mirrorY1);
+                // Draw dashed line from mirror to focal point behind mirror
+                ctx.setLineDash([5, 5]);
+                ctx.lineTo(mirrorX + focalLength, mirrorY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Continue with actual ray path (diverging)
+                ctx.beginPath();
+                ctx.moveTo(mirrorX, mirrorY1);
+                ctx.lineTo(objectX - 2 * focalLength, objectY);
+            }
+            
+            ctx.strokeStyle = '#2196F3';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Ray 2: Through center of curvature (green)
+            ctx.beginPath();
+            ctx.moveTo(objectX, objectY);
+            
+            if (mirrorType === 'concave') {
+                // For concave mirror, ray reflects back on itself
+                ctx.lineTo(mirrorX - 2 * focalLength, mirrorY);
+                if (objectDistance > 1) {
+                    // Real image - ray goes to image
+                    ctx.lineTo(imageX, imageY);
+                } else {
+                    // Virtual image - continue straight back
+                    ctx.lineTo(imageX, imageY);
+                }
+            } else {
+                // For convex mirror, ray appears to come from center behind mirror
+                ctx.setLineDash([5, 5]);
+                ctx.lineTo(mirrorX + 2 * focalLength, mirrorY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Continue with actual ray path
+                ctx.beginPath();
+                const mirrorY2 = mirrorY - (mirrorY - objectY) * 0.5;
+                ctx.moveTo(mirrorX, mirrorY2);
+                ctx.lineTo(objectX - 2 * focalLength, objectY);
+            }
+            
+            ctx.strokeStyle = '#4CAF50';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Ray 3: Through focal point (orange)
+            ctx.beginPath();
+            ctx.moveTo(objectX, objectY);
+            
+            if (mirrorType === 'concave') {
+                if (objectDistance > 1) {
+                    // For concave mirror with object outside F, ray reflects parallel
+                    ctx.lineTo(mirrorX - focalLength, mirrorY);
+                    const mirrorY3 = mirrorY - (mirrorY - objectY) * 0.3;
+                    ctx.lineTo(mirrorX, mirrorY3);
+                    ctx.lineTo(imageX, imageY);
+                } else {
+                    // For concave mirror with object inside F, ray appears to come from focal point
+                    ctx.setLineDash([5, 5]);
+                    ctx.lineTo(mirrorX + focalLength, mirrorY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Continue with actual ray path
+                    ctx.beginPath();
+                    const mirrorY3 = mirrorY - (mirrorY - objectY) * 0.3;
+                    ctx.moveTo(mirrorX, mirrorY3);
+                    ctx.lineTo(imageX, imageY);
+                    ctx.strokeStyle = '#FF9800';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            } else {
+                // For convex mirror, ray parallel to principal axis after reflection
+                const mirrorY3 = mirrorY - (mirrorY - objectY) * 0.3;
+                ctx.lineTo(mirrorX, mirrorY3);
+                // Draw dashed line from object to focal point behind mirror
+                ctx.setLineDash([5, 5]);
+                ctx.moveTo(objectX, objectY);
+                ctx.lineTo(mirrorX + focalLength, mirrorY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Continue with actual ray path
+                ctx.beginPath();
+                ctx.moveTo(mirrorX, mirrorY3);
+                ctx.lineTo(objectX - 2 * focalLength, objectY);
+            }
+            
+            ctx.strokeStyle = '#FF9800';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw image if it exists
+            if ((mirrorType === 'concave' && objectDistance > 1) || mirrorType === 'convex') {
+                drawImage(imageX, imageY, mirrorType === 'concave' && objectDistance > 1);
+            } else if (mirrorType === 'concave' && objectDistance < 1) {
+                // Draw virtual image for concave mirror with object inside F
+                drawImage(imageX, imageY, false);
+            }
+        }
+        
+        // Draw rays for object at infinity (concave mirror)
+        function drawRaysAtInfinity() {
+            // Ray 1: Parallel to principal axis, reflects through focal point
+            ctx.beginPath();
+            ctx.moveTo(50, mirrorY - objectHeight * focalLength);
+            ctx.lineTo(mirrorX, mirrorY - objectHeight * focalLength);
+            ctx.lineTo(mirrorX - focalLength, mirrorY);
+            ctx.strokeStyle = '#2196F3';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Ray 2: Another parallel ray at different height
+            ctx.beginPath();
+            ctx.moveTo(50, mirrorY - objectHeight * focalLength / 2);
+            ctx.lineTo(mirrorX, mirrorY - objectHeight * focalLength / 2);
+            ctx.lineTo(mirrorX - focalLength, mirrorY);
+            ctx.strokeStyle = '#4CAF50';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Ray 3: Through center of curvature
+            ctx.beginPath();
+            ctx.moveTo(50, mirrorY - objectHeight * focalLength * 0.75);
+            ctx.lineTo(mirrorX - 2 * focalLength, mirrorY);
+            ctx.lineTo(mirrorX - focalLength, mirrorY);
+            ctx.strokeStyle = '#FF9800';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw image at focal point (highly diminished)
+            ctx.beginPath();
+            ctx.moveTo(mirrorX - focalLength, mirrorY - 5);
+            ctx.lineTo(mirrorX - focalLength, mirrorY + 5);
+            ctx.strokeStyle = '#9C27B0';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            
+            // Image label
+            ctx.fillStyle = '#9C27B0';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('Image (at F)', mirrorX - focalLength - 60, mirrorY);
+        }
+        
+        // Draw rays for object at focal point (concave mirror)
+        function drawRaysAtFocalPoint() {
+            // Ray 1: Parallel to principal axis, reflects through focal point
+            ctx.beginPath();
+            ctx.moveTo(objectX, objectY);
+            ctx.lineTo(mirrorX, objectY);
+            ctx.lineTo(mirrorX - focalLength, mirrorY);
+            ctx.strokeStyle = '#2196F3';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Ray 2: Through center of curvature
+            ctx.beginPath();
+            ctx.moveTo(objectX, objectY);
+            ctx.lineTo(mirrorX - 2 * focalLength, mirrorY);
+            ctx.lineTo(canvas.width - 50, mirrorY - (canvas.width - mirrorX) * (objectY - mirrorY) / (mirrorX - objectX));
+            ctx.strokeStyle = '#4CAF50';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Ray 3: Through focal point, reflects parallel
+            ctx.beginPath();
+            ctx.moveTo(objectX, objectY);
+            ctx.lineTo(mirrorX - focalLength, mirrorY);
+            ctx.lineTo(mirrorX, mirrorY);
+            ctx.lineTo(canvas.width - 50, objectY);
+            ctx.strokeStyle = '#FF9800';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Indicate that image is at infinity
+            ctx.fillStyle = '#9C27B0';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('Image at infinity', mirrorX + 50, 30);
+        }
+        
+        // Draw the image
+        function drawImage(imageX, imageY, isInverted) {
+            const height = isInverted ? -objectHeight * focalLength * (Math.abs(imageX - mirrorX) / (objectDistance * focalLength)) : 
+                                       objectHeight * focalLength * (Math.abs(imageX - mirrorX) / (objectDistance * focalLength));
+            
+            // Image arrow
+            ctx.beginPath();
+            ctx.moveTo(imageX, mirrorY);
+            ctx.lineTo(imageX, imageY);
+            ctx.strokeStyle = '#9C27B0';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            
+            // Arrow head - For inverted images, arrow should point DOWN
+            ctx.beginPath();
+            if (isInverted) {
+                ctx.moveTo(imageX, imageY);
+                ctx.lineTo(imageX - 8, imageY + 15); // Pointing DOWN
+                ctx.lineTo(imageX + 8, imageY + 15); // Pointing DOWN
+            } else {
+                ctx.moveTo(imageX, imageY);
+                ctx.lineTo(imageX - 8, imageY - 15); // Pointing UP
+                ctx.lineTo(imageX + 8, imageY - 15); // Pointing UP
+            }
+            ctx.closePath();
+            ctx.fillStyle = '#9C27B0';
+            ctx.fill();
+            
+            // Image base
+            ctx.beginPath();
+            ctx.moveTo(imageX - 8, mirrorY);
+            ctx.lineTo(imageX + 8, mirrorY);
+            ctx.strokeStyle = '#9C27B0';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Image label
+            ctx.fillStyle = '#9C27B0';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('Image', imageX + 10, imageY + (isInverted ? 20 : -20));
+            
+            // Add details about the image
+            updateImageDetails(isInverted);
+        }
+        
+        // Update image details
+        function updateImageDetails(isInverted) {
+            const imageDetailsSpan = document.getElementById('imageDetails');
+            
+            if (mirrorType === 'concave') {
+                if (objectDistance > 2) {
+                    imageDetailsSpan.textContent = 'Real, Inverted, Diminished';
+                } else if (Math.abs(objectDistance - 2) < 0.1) {
+                    imageDetailsSpan.textContent = 'Real, Inverted, Same Size';
+                } else if (objectDistance > 1) {
+                    imageDetailsSpan.textContent = 'Real, Inverted, Enlarged';
+                } else if (objectDistance < 1) {
+                    imageDetailsSpan.textContent = 'Virtual, Upright, Enlarged';
+                }
+            } else {
+                imageDetailsSpan.textContent = 'Virtual, Upright, Diminished';
+            }
+        }
+        
+        // Update object information display
+        function updateObjectInfo() {
+            const objectPositionSpan = document.getElementById('objectPosition');
+            const imageTypeSpan = document.getElementById('imageType');
+            const magnificationSpan = document.getElementById('magnification');
+            const sliderValueSpan = document.getElementById('sliderValue');
+            
+            // Update object distance display
+            if (objectDistance > 8) {
+                sliderValueSpan.textContent = 'Infinity';
+                objectPositionSpan.textContent = 'At Infinity';
+            } else if (objectDistance === 2) {
+                sliderValueSpan.textContent = '2f';
+                objectPositionSpan.textContent = 'At C';
+            } else if (objectDistance === 1) {
+                sliderValueSpan.textContent = 'f';
+                objectPositionSpan.textContent = 'At F';
+            } else if (objectDistance < 1) {
+                sliderValueSpan.textContent = `${objectDistance.toFixed(1)}f`;
+                objectPositionSpan.textContent = 'Between F and Mirror';
+            } else if (objectDistance < 2) {
+                sliderValueSpan.textContent = `${objectDistance.toFixed(1)}f`;
+                objectPositionSpan.textContent = 'Between F and C';
+            } else {
+                sliderValueSpan.textContent = `${objectDistance.toFixed(1)}f`;
+                objectPositionSpan.textContent = 'Beyond C';
+            }
+            
+            // Calculate magnification
+            let magnification;
+            if (mirrorType === 'concave') {
+                if (objectDistance > 1) {
+                    magnification = -1 / (objectDistance - 1);
+                } else if (objectDistance < 1) {
+                    magnification = 1 / (1 - objectDistance);
+                } else {
+                    magnification = Infinity; // Object at focal point
+                }
+                
+                // Handle infinity case
+                if (objectDistance > 8) {
+                    magnification = 0; // Image highly diminished
+                }
+            } else {
+                // For convex mirror
+                magnification = 1 / (1 + objectDistance);
+            }
+            
+            if (magnification === Infinity) {
+                magnificationSpan.textContent = '∞';
+            } else {
+                magnificationSpan.textContent = `${Math.abs(magnification).toFixed(1)}x`;
+            }
+            
+            // Update image type
+            if (mirrorType === 'concave') {
+                if (objectDistance > 1) {
+                    imageTypeSpan.textContent = 'Real, Inverted';
+                } else if (objectDistance < 1) {
+                    imageTypeSpan.textContent = 'Virtual, Upright';
+                } else {
+                    imageTypeSpan.textContent = 'At Infinity';
+                }
+                
+                // Handle infinity case
+                if (objectDistance > 8) {
+                    imageTypeSpan.textContent = 'Real, Inverted (at F)';
+                }
+            } else {
+                imageTypeSpan.textContent = 'Virtual, Upright';
+            }
+        }
+        
+        // Mouse event handlers for dragging the object
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mouseleave', handleMouseUp);
+        
+        // Touch events for mobile devices
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', handleTouchEnd);
+        
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            // Check if mouse is near the object
+            if (objectDistance <= 8 && Math.abs(mouseX - objectX) < 30 && Math.abs(mouseY - objectY) < 80) {
+                isDragging = true;
+                canvas.style.cursor = 'grabbing';
+            }
+        }
+        
+        function handleMouseMove(e) {
+            if (!isDragging) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            
+            // Calculate new object distance
+            objectDistance = Math.max(0.1, Math.min(10, (mirrorX - mouseX) / focalLength));
+            
+            // Update slider
+            document.getElementById('objectDistanceSlider').value = objectDistance;
+            
+            // Redraw the diagram
+            drawMirrorDiagram();
+        }
+        
+        function handleMouseUp() {
+            isDragging = false;
+            canvas.style.cursor = 'pointer';
+        }
+        
+        // Touch event handlers
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const touchX = touch.clientX - rect.left;
+            const touchY = touch.clientY - rect.top;
+            
+            // Check if touch is near the object
+            if (objectDistance <= 8 && Math.abs(touchX - objectX) < 30 && Math.abs(touchY - objectY) < 80) {
+                isDragging = true;
+            }
+        }
+        
+        function handleTouchMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const touchX = touch.clientX - rect.left;
+            
+            // Calculate new object distance
+            objectDistance = Math.max(0.1, Math.min(10, (mirrorX - touchX) / focalLength));
+            
+            // Update slider
+            document.getElementById('objectDistanceSlider').value = objectDistance;
+            
+            // Redraw the diagram
+            drawMirrorDiagram();
+        }
+        
+        function handleTouchEnd() {
+            isDragging = false;
+        }
+        
+        // Slider event handler
+        document.getElementById('objectDistanceSlider').addEventListener('input', function() {
+            objectDistance = parseFloat(this.value);
+            drawMirrorDiagram();
+        });
+        
+        // Button event handlers
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            objectDistance = 2;
+            document.getElementById('objectDistanceSlider').value = 2;
+            drawMirrorDiagram();
+        });
+        
+        document.getElementById('concaveBtn').addEventListener('click', function() {
+            mirrorType = 'concave';
+            document.getElementById('concaveBtn').classList.add('active');
+            document.getElementById('convexBtn').classList.remove('active');
+            drawMirrorDiagram();
+        });
+        
+        document.getElementById('convexBtn').addEventListener('click', function() {
+            mirrorType = 'convex';
+            document.getElementById('convexBtn').classList.add('active');
+            document.getElementById('concaveBtn').classList.remove('active');
+            drawMirrorDiagram();
+        });
+    </script>
+</body>
+</html>

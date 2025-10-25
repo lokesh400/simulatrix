@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standing Waves Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #e94560;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+            background: linear-gradient(90deg, #e94560, #f05945);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            color: #b0bec5;
+        }
+        
+        .simulator-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .wave-area {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .wave-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+            color: #e94560;
+        }
+        
+        .wave-type-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .type-btn {
+            padding: 14px 25px;
+            background: rgba(233, 69, 96, 0.1);
+            color: #e94560;
+            border: 2px solid #e94560;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+        
+        .type-btn.active {
+            background: #e94560;
+            color: #1a1a2e;
+            box-shadow: 0 0 25px rgba(233, 69, 96, 0.7);
+            transform: translateY(-2px);
+        }
+        
+        .type-btn:hover {
+            background: rgba(233, 69, 96, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        .wave-canvas-container {
+            width: 100%;
+            height: 450px;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(233, 69, 96, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(240, 89, 69, 0.1) 0%, transparent 50%),
+                #1a1a2e;
+            border-radius: 12px;
+            position: relative;
+            border: 2px solid #2d3746;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.7);
+        }
+        
+        .wave-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .physics-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .physics-title {
+            color: #e94560;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .physics-item {
+            margin-bottom: 10px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            color: #b0bec5;
+            font-size: 0.95rem;
+            padding-left: 10px;
+            border-left: 2px solid rgba(233, 69, 96, 0.3);
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 18px;
+            color: #e94560;
+            border-bottom: 2px solid rgba(233, 69, 96, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 16px;
+            background: rgba(233, 69, 96, 0.1);
+            color: #e94560;
+            border: 2px solid #e94560;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        button:hover {
+            background: rgba(233, 69, 96, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        button.active {
+            background: #e94560;
+            color: #1a1a2e;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .slider-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 12px;
+            color: #b0bec5;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(90deg, #e94560, #f05945);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.8);
+            border: 2px solid #e94560;
+        }
+        
+        .value-display {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: 10px;
+            color: #e94560;
+            font-weight: bold;
+            background: rgba(233, 69, 96, 0.1);
+            padding: 8px;
+            border-radius: 6px;
+        }
+        
+        .status-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .status-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .status-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        .status-label {
+            font-size: 0.95rem;
+            color: #b0bec5;
+            margin-bottom: 10px;
+        }
+        
+        .status-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #e94560;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+        
+        .harmonics-display {
+            text-align: center;
+            margin-top: 15px;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            color: #e94560;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.1rem;
+        }
+
+        /* Node and antinode indicators */
+        .node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #3b82f6;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #3b82f6;
+            z-index: 10;
+        }
+        
+        .antinode {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #e94560;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #e94560;
+            z-index: 10;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .boundary {
+            position: absolute;
+            width: 8px;
+            height: 100%;
+            background: #94a3b8;
+            z-index: 5;
+        }
+        
+        .open-boundary {
+            background: #10b981;
+        }
+        
+        .closed-boundary {
+            background: #ef4444;
+        }
+        
+        .pipe {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            z-index: 1;
+        }
+        
+        .pipe-open-end {
+            position: absolute;
+            width: 30px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.3);
+            border: 2px solid #10b981;
+            z-index: 2;
+        }
+        
+        .pipe-closed-end {
+            position: absolute;
+            width: 30px;
+            height: 80px;
+            background: rgba(239, 68, 68, 0.3);
+            border: 2px solid #ef4444;
+            z-index: 2;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #b0bec5;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .legend-node {
+            background: #3b82f6;
+            box-shadow: 0 0 8px #3b82f6;
+        }
+        
+        .legend-antinode {
+            background: #e94560;
+            box-shadow: 0 0 8px #e94560;
+        }
+        
+        .pipe-label {
+            position: absolute;
+            color: #b0bec5;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 3;
+            background: rgba(26, 26, 46, 0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Standing Waves Simulator</h1>
+            <p class="subtitle">Visualize standing waves on strings and pipes with nodes, antinodes, and harmonics</p>
+        </header>
+        
+        <div class="simulator-container">
+            <div class="wave-area">
+                <div class="wave-type-selector">
+                    <div class="type-btn active" id="stringBtn">🎸 String Waves</div>
+                    <div class="type-btn" id="openPipeBtn">🎵 Open Pipe</div>
+                    <div class="type-btn" id="closedPipeBtn">🎺 Closed Pipe</div>
+                </div>
+                
+                <div class="wave-title" id="waveTitle">STANDING WAVES ON A STRING</div>
+                
+                <div class="wave-canvas-container">
+                    <canvas class="wave-canvas" id="waveCanvas"></canvas>
+                    <!-- Nodes, antinodes, boundaries, and pipes will be drawn here -->
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color legend-node"></div>
+                        <span>Node (No displacement)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-antinode"></div>
+                        <span>Antinode (Max displacement)</span>
+                    </div>
+                </div>
+                
+                <div class="physics-box">
+                    <div class="physics-title">Wave Physics Equations:</div>
+                    <div class="physics-item" id="wavelengthEq">λ = 2L/n</div>
+                    <div class="physics-item" id="frequencyEq">f = nv/2L</div>
+                    <div class="physics-item" id="harmonicEq">Harmonic: n = 1, 2, 3...</div>
+                    <div class="physics-item">Wave Speed: v = √(T/μ)</div>
+                    <div class="physics-item">Nodes: Points of zero amplitude</div>
+                    <div class="physics-item">Antinodes: Points of maximum amplitude</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <h2>Wave Parameters</h2>
+                    <div class="slider-container">
+                        <label for="harmonicSlider">Harmonic Number</label>
+                        <input type="range" id="harmonicSlider" min="1" max="8" value="1">
+                        <div class="value-display" id="harmonicValue">Fundamental (n=1)</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="tensionSlider">Tension (N)</label>
+                        <input type="range" id="tensionSlider" min="10" max="100" value="50">
+                        <div class="value-display" id="tensionValue">50 N</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="lengthSlider">Length (m)</label>
+                        <input type="range" id="lengthSlider" min="0.5" max="3" step="0.1" value="2">
+                        <div class="value-display" id="lengthValue">2.0 m</div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h2>Simulation Control</h2>
+                    <div class="btn-group">
+                        <button id="startBtn">START</button>
+                        <button id="pauseBtn">PAUSE</button>
+                        <button id="resetBtn">RESET</button>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="speedSlider">Animation Speed</label>
+                        <input type="range" id="speedSlider" min="1" max="20" value="3">
+                        <div class="value-display" id="speedValue">SLOW</div>
+                    </div>
+                    
+                    <div class="harmonics-display">
+                        <div>Wavelength: <span id="wavelengthValue">4.00 m</span></div>
+                        <div>Frequency: <span id="frequencyValue">25.00 Hz</span></div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h2>Real-time Measurements</h2>
+                    <div class="status-display">
+                        <div class="status-item">
+                            <div class="status-label">WAVELENGTH</div>
+                            <div class="status-value" id="wavelengthDisplay">4.00 m</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">FREQUENCY</div>
+                            <div class="status-value" id="frequencyDisplay">25.00 Hz</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">NODES</div>
+                            <div class="status-value" id="nodesDisplay">2</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">ANTINODES</div>
+                            <div class="status-value" id="antinodesDisplay">1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wave simulation state
+        let waveType = 'string'; // 'string', 'openPipe', 'closedPipe'
+        let harmonic = 1;
+        let tension = 50; // N
+        let length = 2.0; // m
+        let linearDensity = 0.01; // kg/m
+        let animationSpeed = 3; // Much slower default
+        let isRunning = true;
+        let isPaused = false;
+        let time = 0;
+        
+        // UI elements
+        const stringBtn = document.getElementById('stringBtn');
+        const openPipeBtn = document.getElementById('openPipeBtn');
+        const closedPipeBtn = document.getElementById('closedPipeBtn');
+        const waveTitle = document.getElementById('waveTitle');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const harmonicSlider = document.getElementById('harmonicSlider');
+        const tensionSlider = document.getElementById('tensionSlider');
+        const lengthSlider = document.getElementById('lengthSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const harmonicValue = document.getElementById('harmonicValue');
+        const tensionValue = document.getElementById('tensionValue');
+        const lengthValue = document.getElementById('lengthValue');
+        const speedValue = document.getElementById('speedValue');
+        const wavelengthValue = document.getElementById('wavelengthValue');
+        const frequencyValue = document.getElementById('frequencyValue');
+        const wavelengthDisplay = document.getElementById('wavelengthDisplay');
+        const frequencyDisplay = document.getElementById('frequencyDisplay');
+        const nodesDisplay = document.getElementById('nodesDisplay');
+        const antinodesDisplay = document.getElementById('antinodesDisplay');
+        const wavelengthEq = document.getElementById('wavelengthEq');
+        const frequencyEq = document.getElementById('frequencyEq');
+        const harmonicEq = document.getElementById('harmonicEq');
+        
+        // Canvas setup
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Event listeners
+        stringBtn.addEventListener('click', () => {
+            setWaveType('string');
+        });
+        
+        openPipeBtn.addEventListener('click', () => {
+            setWaveType('openPipe');
+        });
+        
+        closedPipeBtn.addEventListener('click', () => {
+            setWaveType('closedPipe');
+        });
+        
+        startBtn.addEventListener('click', () => {
+            isRunning = true;
+            isPaused = false;
+            startBtn.classList.add('active');
+            pauseBtn.classList.remove('active');
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            pauseBtn.classList.toggle('active', isPaused);
+            startBtn.classList.toggle('active', !isPaused);
+        });
+        
+        resetBtn.addEventListener('click', resetSimulation);
+        
+        harmonicSlider.addEventListener('input', () => {
+            harmonic = parseInt(harmonicSlider.value);
+            updateHarmonicDisplay();
+            updateWaveCalculations();
+            drawWave();
+        });
+        
+        tensionSlider.addEventListener('input', () => {
+            tension = parseInt(tensionSlider.value);
+            tensionValue.textContent = `${tension} N`;
+            updateWaveCalculations();
+        });
+        
+        lengthSlider.addEventListener('input', () => {
+            length = parseFloat(lengthSlider.value);
+            lengthValue.textContent = `${length.toFixed(1)} m`;
+            updateWaveCalculations();
+            drawWave();
+        });
+        
+        speedSlider.addEventListener('input', () => {
+            animationSpeed = parseInt(speedSlider.value);
+            const speeds = [
+                'VERY SLOW', 'VERY SLOW', 'SLOW', 'SLOW', 'MODERATE', 
+                'MODERATE', 'NORMAL', 'NORMAL', 'FAST', 'FAST',
+                'VERY FAST', 'VERY FAST', 'EXTREME', 'EXTREME', 'ULTRA',
+                'ULTRA', 'MAX', 'MAX', 'MAX', 'MAX'
+            ];
+            speedValue.textContent = speeds[animationSpeed - 1] || 'SLOW';
+        });
+        
+        function setWaveType(type) {
+            waveType = type;
+            stringBtn.classList.toggle('active', type === 'string');
+            openPipeBtn.classList.toggle('active', type === 'openPipe');
+            closedPipeBtn.classList.toggle('active', type === 'closedPipe');
+            
+            // Update title and equations
+            if (type === 'string') {
+                waveTitle.textContent = 'STANDING WAVES ON A STRING';
+                wavelengthEq.textContent = 'λ = 2L/n';
+                frequencyEq.textContent = 'f = nv/2L';
+                harmonicEq.textContent = 'Harmonic: n = 1, 2, 3...';
+            } else if (type === 'openPipe') {
+                waveTitle.textContent = 'STANDING WAVES IN OPEN PIPE';
+                wavelengthEq.textContent = 'λ = 2L/n';
+                frequencyEq.textContent = 'f = nv/2L';
+                harmonicEq.textContent = 'Harmonic: n = 1, 2, 3...';
+            } else {
+                waveTitle.textContent = 'STANDING WAVES IN CLOSED PIPE';
+                wavelengthEq.textContent = 'λ = 4L/(2n-1)';
+                frequencyEq.textContent = 'f = (2n-1)v/4L';
+                harmonicEq.textContent = 'Harmonic: n = 1, 2, 3...';
+            }
+            
+            updateHarmonicDisplay();
+            updateWaveCalculations();
+            drawWave();
+        }
+        
+        function updateHarmonicDisplay() {
+            const harmonicNames = [
+                'Fundamental (n=1)', '2nd Harmonic (n=2)', '3rd Harmonic (n=3)', 
+                '4th Harmonic (n=4)', '5th Harmonic (n=5)', '6th Harmonic (n=6)',
+                '7th Harmonic (n=7)', '8th Harmonic (n=8)'
+            ];
+            harmonicValue.textContent = harmonicNames[harmonic - 1];
+        }
+        
+        function updateWaveCalculations() {
+            // Calculate wave speed
+            const waveSpeed = Math.sqrt(tension / linearDensity);
+            
+            // Calculate wavelength and frequency based on wave type
+            let wavelength, frequency;
+            
+            if (waveType === 'string' || waveType === 'openPipe') {
+                wavelength = (2 * length) / harmonic;
+                frequency = (harmonic * waveSpeed) / (2 * length);
+            } else { // closed pipe
+                wavelength = (4 * length) / (2 * harmonic - 1);
+                frequency = ((2 * harmonic - 1) * waveSpeed) / (4 * length);
+            }
+            
+            // Update displays
+            wavelengthValue.textContent = wavelength.toFixed(2) + ' m';
+            frequencyValue.textContent = frequency.toFixed(2) + ' Hz';
+            wavelengthDisplay.textContent = wavelength.toFixed(2) + ' m';
+            frequencyDisplay.textContent = frequency.toFixed(2) + ' Hz';
+            
+            // Update node and antinode counts
+            updateNodeAntinodeCounts();
+        }
+        
+        function updateNodeAntinodeCounts() {
+            let nodes, antinodes;
+            
+            if (waveType === 'string') {
+                nodes = harmonic + 1;
+                antinodes = harmonic;
+            } else if (waveType === 'openPipe') {
+                nodes = harmonic + 1;
+                antinodes = harmonic;
+            } else { // closed pipe
+                nodes = harmonic;
+                antinodes = harmonic;
+            }
+            
+            nodesDisplay.textContent = nodes;
+            antinodesDisplay.textContent = antinodes;
+        }
+        
+        function resetSimulation() {
+            time = 0;
+            isRunning = true;
+            isPaused = false;
+            startBtn.classList.add('active');
+            pauseBtn.classList.remove('active');
+            drawWave();
+        }
+        
+        // Draw the standing wave
+        function drawWave() {
+            const width = canvas.width = canvas.parentElement.clientWidth;
+            const height = canvas.height = canvas.parentElement.clientHeight;
+            
+            // Clear canvas
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw pipe if pipe mode is selected
+            if (waveType === 'openPipe' || waveType === 'closedPipe') {
+                drawPipe(width, height);
+            }
+            
+            // Calculate wave parameters
+            const waveSpeed = Math.sqrt(tension / linearDensity);
+            let wavelength, waveNumber, angularFrequency;
+            
+            if (waveType === 'string' || waveType === 'openPipe') {
+                wavelength = (2 * length) / harmonic;
+                waveNumber = (2 * Math.PI) / wavelength;
+                angularFrequency = waveNumber * waveSpeed;
+            } else { // closed pipe
+                wavelength = (4 * length) / (2 * harmonic - 1);
+                waveNumber = (2 * Math.PI) / wavelength;
+                angularFrequency = waveNumber * waveSpeed;
+            }
+            
+            const amplitude = height / 6; // Reduced amplitude for better visibility
+            const centerY = height / 2;
+            
+            // Draw boundaries
+            drawBoundaries(width, height);
+            
+            // Draw the wave
+            ctx.beginPath();
+            ctx.strokeStyle = '#e94560';
+            ctx.lineWidth = 3;
+            
+            for (let x = 0; x <= width; x++) {
+                const xRatio = x / width;
+                let y;
+                
+                if (waveType === 'string') {
+                    // Fixed ends - sine wave
+                    y = centerY + amplitude * Math.sin(waveNumber * xRatio * length) * Math.cos(angularFrequency * time);
+                } else if (waveType === 'openPipe') {
+                    // Open ends - cosine wave (displacement antinodes at both ends)
+                    y = centerY + amplitude * Math.cos(waveNumber * xRatio * length) * Math.cos(angularFrequency * time);
+                } else {
+                    // Closed pipe - sine wave (node at closed end, antinode at open end)
+                    y = centerY + amplitude * Math.sin(waveNumber * xRatio * length) * Math.cos(angularFrequency * time);
+                }
+                
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // Draw nodes and antinodes
+            drawNodesAndAntinodes(width, height, wavelength, waveNumber);
+        }
+        
+        function drawPipe(width, height) {
+            const centerY = height / 2;
+            const pipeHeight = 80;
+            const pipeWidth = width;
+            
+            // Draw main pipe body
+            ctx.fillStyle = 'rgba(100, 100, 150, 0.2)';
+            ctx.strokeStyle = 'rgba(150, 150, 200, 0.8)';
+            ctx.lineWidth = 2;
+            
+            // Pipe top
+            ctx.beginPath();
+            ctx.moveTo(0, centerY - pipeHeight/2);
+            ctx.lineTo(width, centerY - pipeHeight/2);
+            ctx.stroke();
+            
+            // Pipe bottom
+            ctx.beginPath();
+            ctx.moveTo(0, centerY + pipeHeight/2);
+            ctx.lineTo(width, centerY + pipeHeight/2);
+            ctx.stroke();
+            
+            // Fill pipe area
+            ctx.fillStyle = 'rgba(80, 80, 120, 0.1)';
+            ctx.fillRect(0, centerY - pipeHeight/2, width, pipeHeight);
+            
+            // Draw pipe ends
+            if (waveType === 'openPipe') {
+                // Both ends open
+                drawOpenPipeEnd(0, centerY - pipeHeight/2, true);
+                drawOpenPipeEnd(width, centerY - pipeHeight/2, false);
+            } else {
+                // Closed pipe - closed at left, open at right
+                drawClosedPipeEnd(0, centerY - pipeHeight/2);
+                drawOpenPipeEnd(width, centerY - pipeHeight/2, false);
+            }
+        }
+        
+        function drawOpenPipeEnd(x, y, isLeft) {
+            const endWidth = 20;
+            const endHeight = 80;
+            
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            
+            if (isLeft) {
+                ctx.fillRect(x - endWidth, y, endWidth, endHeight);
+                ctx.strokeRect(x - endWidth, y, endWidth, endHeight);
+                
+                // Add label
+                ctx.fillStyle = '#10b981';
+                ctx.font = '12px Arial';
+                ctx.fillText('OPEN', x - 25, y - 10);
+            } else {
+                ctx.fillRect(x, y, endWidth, endHeight);
+                ctx.strokeRect(x, y, endWidth, endHeight);
+                
+                // Add label
+                ctx.fillStyle = '#10b981';
+                ctx.font = '12px Arial';
+                ctx.fillText('OPEN', x + 25, y - 10);
+            }
+        }
+        
+        function drawClosedPipeEnd(x, y) {
+            const endWidth = 20;
+            const endHeight = 80;
+            
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2;
+            
+            ctx.fillRect(x - endWidth, y, endWidth, endHeight);
+            ctx.strokeRect(x - endWidth, y, endWidth, endHeight);
+            
+            // Add label
+            ctx.fillStyle = '#ef4444';
+            ctx.font = '12px Arial';
+            ctx.fillText('CLOSED', x - 30, y - 10);
+        }
+        
+        function drawBoundaries(width, height) {
+            const centerY = height / 2;
+            
+            // Only draw boundaries for string mode
+            if (waveType === 'string') {
+                // Left boundary
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(0, centerY - 40, 8, 80);
+                
+                // Right boundary
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(width - 8, centerY - 40, 8, 80);
+                
+                // Add boundary labels
+                ctx.fillStyle = '#b0bec5';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Fixed', 20, centerY - 50);
+                ctx.fillText('Fixed', width - 20, centerY - 50);
+            }
+        }
+        
+        function drawNodesAndAntinodes(width, height, wavelength, waveNumber) {
+            const centerY = height / 2;
+            const amplitude = height / 6;
+            
+            // Clear previous nodes and antinodes
+            const nodes = canvas.parentElement.querySelectorAll('.node, .antinode');
+            nodes.forEach(node => node.remove());
+            
+            // Calculate node and antinode positions
+            let nodePositions = [];
+            let antinodePositions = [];
+            
+            if (waveType === 'string') {
+                // String has nodes at both ends and equally spaced nodes
+                for (let i = 0; i <= harmonic; i++) {
+                    const x = (i / harmonic) * width;
+                    nodePositions.push(x);
+                }
+                
+                // Antinodes are between nodes
+                for (let i = 0; i < harmonic; i++) {
+                    const x = ((i + 0.5) / harmonic) * width;
+                    antinodePositions.push(x);
+                }
+            } else if (waveType === 'openPipe') {
+                // Open pipe has antinodes at both ends
+                for (let i = 0; i <= harmonic; i++) {
+                    const x = (i / harmonic) * width;
+                    antinodePositions.push(x);
+                }
+                
+                // Nodes are between antinodes
+                for (let i = 1; i < harmonic; i++) {
+                    const x = (i / harmonic) * width;
+                    nodePositions.push(x);
+                }
+            } else {
+                // Closed pipe has node at closed end, antinode at open end
+                for (let i = 0; i < harmonic; i++) {
+                    const nodeX = ((2 * i) / (2 * harmonic - 1)) * width;
+                    nodePositions.push(nodeX);
+                    
+                    const antinodeX = ((2 * i + 1) / (2 * harmonic - 1)) * width;
+                    antinodePositions.push(antinodeX);
+                }
+            }
+            
+            // Draw nodes
+            nodePositions.forEach(x => {
+                const node = document.createElement('div');
+                node.className = 'node';
+                node.style.left = `${x}px`;
+                node.style.top = `${centerY}px`;
+                canvas.parentElement.appendChild(node);
+            });
+            
+            // Draw antinodes
+            antinodePositions.forEach(x => {
+                let y;
+                if (waveType === 'string') {
+                    y = centerY + amplitude * Math.sin(waveNumber * (x / width) * length) * Math.cos(waveNumber * Math.sqrt(tension / linearDensity) * time);
+                } else if (waveType === 'openPipe') {
+                    y = centerY + amplitude * Math.cos(waveNumber * (x / width) * length) * Math.cos(waveNumber * Math.sqrt(tension / linearDensity) * time);
+                } else {
+                    y = centerY + amplitude * Math.sin(waveNumber * (x / width) * length) * Math.cos(waveNumber * Math.sqrt(tension / linearDensity) * time);
+                }
+                
+                const antinode = document.createElement('div');
+                antinode.className = 'antinode';
+                antinode.style.left = `${x}px`;
+                antinode.style.top = `${y}px`;
+                canvas.parentElement.appendChild(antinode);
+            });
+        }
+        
+        // Animation loop
+        function animate() {
+            if (!isPaused && isRunning) {
+                // Much slower time increment for smoother, slower animation
+                time += 0.005 * (animationSpeed / 3);
+                
+                // Clear previous nodes and antinodes
+                const nodes = canvas.parentElement.querySelectorAll('.node, .antinode');
+                nodes.forEach(node => node.remove());
+                
+                drawWave();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Initialize
+        function init() {
+            updateHarmonicDisplay();
+            updateWaveCalculations();
+            drawWave();
+            animate();
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', drawWave);
+        
+        // Start the simulation
+        init();
+    </script>
+</body>
+</html>
