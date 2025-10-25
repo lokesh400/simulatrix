@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wave Interference Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2a4a8c);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .simulation-area {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .canvas-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #waveCanvas {
+            width: 100%;
+            height: 500px;
+            background: radial-gradient(circle at center, #0f1b3a, #050a1a);
+            border-radius: 10px;
+            display: block;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #00f2fe;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+
+        .slider-container {
+            margin-bottom: 20px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #00f2fe;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.7);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #4facfe;
+            transform: scale(1.1);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+            min-width: 140px;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .wave-source-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .wave-source {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #00f2fe;
+        }
+
+        .source-title {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #4facfe;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .indicators {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .indicator {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            border-radius: 10px;
+            min-width: 150px;
+            border-top: 3px solid #00f2fe;
+        }
+
+        .indicator-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00f2fe;
+            margin-top: 5px;
+        }
+
+        .visualization-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .vis-btn {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            min-width: auto;
+        }
+
+        .vis-btn.active {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .interference-pattern {
+            height: 100px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            .wave-source-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Wave Interference Simulation</h1>
+        <p class="subtitle">Explore how waves interact with each other. Adjust the parameters of two wave sources to see constructive and destructive interference patterns.</p>
+    </header>
+
+    <div class="container">
+        <div class="simulation-area">
+            <div class="canvas-container">
+                <canvas id="waveCanvas" width="1150" height="500"></canvas>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <div class="control-title">
+                        <i>🌊</i> Wave Properties
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Wavelength</span>
+                            <span id="wavelengthValue">50</span>
+                        </div>
+                        <input type="range" id="wavelength" min="20" max="100" step="5" value="50">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Amplitude</span>
+                            <span id="amplitudeValue">1.0</span>
+                        </div>
+                        <input type="range" id="amplitude" min="0.1" max="2.0" step="0.1" value="1.0">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Wave Speed</span>
+                            <span id="speedValue">5.0</span>
+                        </div>
+                        <input type="range" id="waveSpeed" min="1.0" max="10.0" step="0.5" value="5.0">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Damping</span>
+                            <span id="dampingValue">0.02</span>
+                        </div>
+                        <input type="range" id="damping" min="0.0" max="0.1" step="0.005" value="0.02">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-title">
+                        <i>📍</i> Source Configuration
+                    </div>
+                    <div class="wave-source-controls">
+                        <div class="wave-source">
+                            <div class="source-title">
+                                <i>🔴</i> Source 1
+                            </div>
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>Frequency</span>
+                                    <span id="freq1Value">1.0</span>
+                                </div>
+                                <input type="range" id="frequency1" min="0.5" max="2.0" step="0.1" value="1.0">
+                            </div>
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>Phase</span>
+                                    <span id="phase1Value">0°</span>
+                                </div>
+                                <input type="range" id="phase1" min="0" max="360" step="10" value="0">
+                            </div>
+                        </div>
+                        <div class="wave-source">
+                            <div class="source-title">
+                                <i>🔵</i> Source 2
+                            </div>
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>Frequency</span>
+                                    <span id="freq2Value">1.0</span>
+                                </div>
+                                <input type="range" id="frequency2" min="0.5" max="2.0" step="0.1" value="1.0">
+                            </div>
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>Phase</span>
+                                    <span id="phase2Value">0°</span>
+                                </div>
+                                <input type="range" id="phase2" min="0" max="360" step="10" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Source Separation</span>
+                            <span id="separationValue">200</span>
+                        </div>
+                        <input type="range" id="separation" min="50" max="400" step="10" value="200">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-title">
+                        <i>🎮</i> Controls & Visualization
+                    </div>
+                    <div class="buttons">
+                        <button id="startBtn">
+                            <i>▶️</i> Start
+                        </button>
+                        <button id="pauseBtn">
+                            <i>⏸️</i> Pause
+                        </button>
+                        <button id="resetBtn">
+                            <i>🔄</i> Reset
+                        </button>
+                    </div>
+                    
+                    <div class="visualization-controls">
+                        <button class="vis-btn active" id="viewInterference">
+                            Interference Pattern
+                        </button>
+                        <button class="vis-btn" id="viewWaves">
+                            Individual Waves
+                        </button>
+                        <button class="vis-btn" id="viewIntensity">
+                            Intensity Map
+                        </button>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Show Wavefronts</span>
+                            <span id="wavefrontsValue">On</span>
+                        </div>
+                        <input type="range" id="wavefronts" min="0" max="1" step="1" value="1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="indicators">
+                <div class="indicator">
+                    <div>Constructive Interference</div>
+                    <div class="indicator-value" id="constructiveValue">0</div>
+                </div>
+                <div class="indicator">
+                    <div>Destructive Interference</div>
+                    <div class="indicator-value" id="destructiveValue">0</div>
+                </div>
+                <div class="indicator">
+                    <div>Beat Frequency</div>
+                    <div class="indicator-value" id="beatFreqValue">0.00 Hz</div>
+                </div>
+                <div class="indicator">
+                    <div>Simulation Time</div>
+                    <div class="indicator-value" id="timeValue">0.00 s</div>
+                </div>
+            </div>
+            
+            <div class="interference-pattern" id="patternCanvasContainer">
+                <canvas id="patternCanvas" width="1150" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Wave Interference Simulation | Educational Physics Tool</p>
+    </footer>
+
+    <script>
+        // Wave Interference Simulation Class
+        class WaveInterferenceSim {
+            constructor(canvasId, patternCanvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.patternCanvas = document.getElementById(patternCanvasId);
+                this.patternCtx = this.patternCanvas.getContext('2d');
+                
+                this.width = this.canvas.width;
+                this.height = this.canvas.height;
+                this.patternWidth = this.patternCanvas.width;
+                this.patternHeight = this.patternCanvas.height;
+                
+                this.reset();
+            }
+            
+            reset() {
+                this.time = 0;
+                this.isRunning = false;
+                this.animationId = null;
+                
+                // Visualization mode
+                this.visualizationMode = 'interference'; // 'interference', 'waves', 'intensity'
+                
+                // Wave properties
+                this.wavelength = 50;
+                this.amplitude = 1.0;
+                this.waveSpeed = 5.0;
+                this.damping = 0.02;
+                
+                // Source properties
+                this.source1 = {
+                    x: this.width/2 - 100,
+                    y: this.height/2,
+                    frequency: 1.0,
+                    phase: 0
+                };
+                
+                this.source2 = {
+                    x: this.width/2 + 100,
+                    y: this.height/2,
+                    frequency: 1.0,
+                    phase: 0
+                };
+                
+                this.separation = 200;
+                this.updateSourcePositions();
+                
+                // Statistics
+                this.constructiveCount = 0;
+                this.destructiveCount = 0;
+                
+                this.draw();
+                this.drawPattern();
+            }
+            
+            updateSourcePositions() {
+                this.source1.x = this.width/2 - this.separation/2;
+                this.source2.x = this.width/2 + this.separation/2;
+            }
+            
+            calculateWaveValue(x, y, source, time) {
+                const dx = x - source.x;
+                const dy = y - source.y;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                
+                // Calculate wave value at point (x, y)
+                const k = 2 * Math.PI / this.wavelength; // Wave number
+                const angularFreq = 2 * Math.PI * source.frequency;
+                const phase = source.phase * Math.PI / 180; // Convert to radians
+                
+                // Wave equation: A * sin(k*distance - angularFreq*time + phase)
+                let value = this.amplitude * Math.sin(k * distance - angularFreq * time + phase);
+                
+                // Apply damping with distance
+                const dampingFactor = Math.exp(-this.damping * distance);
+                value *= dampingFactor;
+                
+                return value;
+            }
+            
+            draw() {
+                const ctx = this.ctx;
+                
+                // Clear canvas with gradient
+                const gradient = ctx.createLinearGradient(0, 0, 0, this.height);
+                gradient.addColorStop(0, "#0a0f25");
+                gradient.addColorStop(1, "#050a1a");
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, this.width, this.height);
+                
+                // Draw grid
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let x = 0; x < this.width; x += this.width/20) {
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, this.height);
+                }
+                for (let y = 0; y < this.height; y += this.height/20) {
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(this.width, y);
+                }
+                ctx.stroke();
+                
+                // Reset statistics
+                this.constructiveCount = 0;
+                this.destructiveCount = 0;
+                
+                // Draw wave interference
+                if (this.visualizationMode === 'intensity') {
+                    this.drawIntensityMap();
+                } else {
+                    this.drawWaveInterference();
+                }
+                
+                // Draw wave sources
+                this.drawSources();
+                
+                // Draw wavefronts if enabled
+                if (document.getElementById('wavefronts').value === '1') {
+                    this.drawWavefronts();
+                }
+            }
+            
+            drawWaveInterference() {
+                const ctx = this.ctx;
+                const cellSize = 4;
+                
+                for (let x = 0; x < this.width; x += cellSize) {
+                    for (let y = 0; y < this.height; y += cellSize) {
+                        // Calculate wave from source 1
+                        const wave1 = this.calculateWaveValue(x, y, this.source1, this.time);
+                        
+                        // Calculate wave from source 2
+                        const wave2 = this.calculateWaveValue(x, y, this.source2, this.time);
+                        
+                        let value, color;
+                        
+                        if (this.visualizationMode === 'waves') {
+                            // Show individual waves
+                            if (Math.abs(wave1) > Math.abs(wave2)) {
+                                value = wave1;
+                                color = this.getWaveColor(value, true);
+                            } else {
+                                value = wave2;
+                                color = this.getWaveColor(value, false);
+                            }
+                        } else {
+                            // Show interference pattern
+                            value = wave1 + wave2;
+                            color = this.getInterferenceColor(value);
+                            
+                            // Count constructive and destructive interference
+                            if (value > 1.5) this.constructiveCount++;
+                            if (value < -1.5) this.constructiveCount++;
+                            if (Math.abs(value) < 0.1) this.destructiveCount++;
+                        }
+                        
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x, y, cellSize, cellSize);
+                    }
+                }
+            }
+            
+            drawIntensityMap() {
+                const ctx = this.ctx;
+                const cellSize = 4;
+                
+                for (let x = 0; x < this.width; x += cellSize) {
+                    for (let y = 0; y < this.height; y += cellSize) {
+                        // Calculate wave from source 1
+                        const wave1 = this.calculateWaveValue(x, y, this.source1, this.time);
+                        
+                        // Calculate wave from source 2
+                        const wave2 = this.calculateWaveValue(x, y, this.source2, this.time);
+                        
+                        // Calculate intensity (square of amplitude)
+                        const intensity = Math.pow(wave1 + wave2, 2);
+                        
+                        // Map intensity to color (blue to red)
+                        const colorValue = Math.min(255, Math.floor(intensity * 150));
+                        const color = `rgb(${colorValue}, 100, ${255 - colorValue})`;
+                        
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x, y, cellSize, cellSize);
+                        
+                        // Count constructive and destructive interference
+                        if (intensity > 2.0) this.constructiveCount++;
+                        if (intensity < 0.1) this.destructiveCount++;
+                    }
+                }
+            }
+            
+            getWaveColor(value, isSource1) {
+                // Map wave value to color
+                const intensity = Math.floor(128 + value * 127);
+                if (isSource1) {
+                    return `rgba(255, 100, 100, ${0.5 + Math.abs(value) * 0.5})`;
+                } else {
+                    return `rgba(100, 100, 255, ${0.5 + Math.abs(value) * 0.5})`;
+                }
+            }
+            
+            getInterferenceColor(value) {
+                // Map interference value to color
+                const intensity = Math.floor(128 + value * 127);
+                return `rgb(${intensity}, ${intensity}, 255)`;
+            }
+            
+            drawSources() {
+                const ctx = this.ctx;
+                
+                // Draw source 1
+                ctx.fillStyle = 'rgba(255, 100, 100, 0.7)';
+                ctx.beginPath();
+                ctx.arc(this.source1.x, this.source1.y, 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw source 2
+                ctx.fillStyle = 'rgba(100, 100, 255, 0.7)';
+                ctx.beginPath();
+                ctx.arc(this.source2.x, this.source2.y, 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw source labels
+                ctx.fillStyle = 'white';
+                ctx.font = '14px Arial';
+                ctx.fillText('Source 1', this.source1.x - 25, this.source1.y - 15);
+                ctx.fillText('Source 2', this.source2.x - 25, this.source2.y - 15);
+            }
+            
+            drawWavefronts() {
+                const ctx = this.ctx;
+                const numWavefronts = 8;
+                
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 1;
+                
+                // Draw wavefronts for source 1
+                for (let i = 1; i <= numWavefronts; i++) {
+                    const radius = i * this.wavelength;
+                    ctx.beginPath();
+                    ctx.arc(this.source1.x, this.source1.y, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                // Draw wavefronts for source 2
+                for (let i = 1; i <= numWavefronts; i++) {
+                    const radius = i * this.wavelength;
+                    ctx.beginPath();
+                    ctx.arc(this.source2.x, this.source2.y, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+            
+            drawPattern() {
+                const ctx = this.patternCtx;
+                const width = this.patternWidth;
+                const height = this.patternHeight;
+                
+                // Clear pattern canvas
+                ctx.fillStyle = '#0a0f25';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Draw interference pattern along a horizontal line
+                const y = height / 2;
+                
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                
+                for (let x = 0; x < width; x++) {
+                    // Calculate the x position in the main canvas
+                    const canvasX = (x / width) * this.width;
+                    const canvasY = this.height / 2;
+                    
+                    // Calculate wave interference at this point
+                    const wave1 = this.calculateWaveValue(canvasX, canvasY, this.source1, this.time);
+                    const wave2 = this.calculateWaveValue(canvasX, canvasY, this.source2, this.time);
+                    const value = wave1 + wave2;
+                    
+                    // Map value to y position
+                    const patternY = y + value * 30;
+                    
+                    if (x === 0) {
+                        ctx.moveTo(x, patternY);
+                    } else {
+                        ctx.lineTo(x, patternY);
+                    }
+                }
+                
+                // Draw the pattern line
+                ctx.strokeStyle = '#00f2fe';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw the baseline
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            step(dt) {
+                if (!this.isRunning) return;
+                
+                this.time += dt;
+                
+                // Update statistics
+                this.updateIndicators();
+                
+                this.draw();
+                this.drawPattern();
+            }
+            
+            updateIndicators() {
+                document.getElementById('constructiveValue').textContent = this.constructiveCount;
+                document.getElementById('destructiveValue').textContent = this.destructiveCount;
+                document.getElementById('timeValue').textContent = this.time.toFixed(2);
+                
+                // Calculate beat frequency
+                const beatFreq = Math.abs(this.source1.frequency - this.source2.frequency);
+                document.getElementById('beatFreqValue').textContent = beatFreq.toFixed(2) + " Hz";
+            }
+            
+            start() {
+                if (this.isRunning) return;
+                this.isRunning = true;
+                
+                const animate = (timestamp) => {
+                    if (!this.isRunning) return;
+                    
+                    this.step(0.016); // Approximately 60 FPS
+                    
+                    this.animationId = requestAnimationFrame(animate);
+                };
+                
+                this.animationId = requestAnimationFrame(animate);
+            }
+            
+            pause() {
+                this.isRunning = false;
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+            }
+            
+            setVisualizationMode(mode) {
+                this.visualizationMode = mode;
+                
+                // Update button states
+                document.querySelectorAll('.vis-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.getElementById(`view${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.add('active');
+                
+                this.draw();
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            const simulator = new WaveInterferenceSim('waveCanvas', 'patternCanvas');
+            
+            // Set up control event listeners
+            document.getElementById('startBtn').addEventListener('click', () => {
+                simulator.start();
+            });
+            
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                simulator.pause();
+            });
+            
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                simulator.pause();
+                simulator.reset();
+            });
+            
+            // Visualization mode buttons
+            document.getElementById('viewInterference').addEventListener('click', () => {
+                simulator.setVisualizationMode('interference');
+            });
+            
+            document.getElementById('viewWaves').addEventListener('click', () => {
+                simulator.setVisualizationMode('waves');
+            });
+            
+            document.getElementById('viewIntensity').addEventListener('click', () => {
+                simulator.setVisualizationMode('intensity');
+            });
+            
+            // Slider event listeners
+            const sliders = [
+                'wavelength', 'amplitude', 'waveSpeed', 'damping',
+                'frequency1', 'frequency2', 'phase1', 'phase2', 'separation', 'wavefronts'
+            ];
+            
+            sliders.forEach(sliderId => {
+                const slider = document.getElementById(sliderId);
+                const valueElement = document.getElementById(sliderId + 'Value');
+                
+                slider.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    
+                    if (sliderId === 'wavefronts') {
+                        valueElement.textContent = value === '1' ? 'On' : 'Off';
+                    } else if (sliderId.includes('phase')) {
+                        valueElement.textContent = value + '°';
+                    } else {
+                        valueElement.textContent = value;
+                    }
+                    
+                    // Update simulation parameters
+                    if (sliderId === 'wavelength') {
+                        simulator.wavelength = parseFloat(value);
+                    } else if (sliderId === 'amplitude') {
+                        simulator.amplitude = parseFloat(value);
+                    } else if (sliderId === 'waveSpeed') {
+                        simulator.waveSpeed = parseFloat(value);
+                    } else if (sliderId === 'damping') {
+                        simulator.damping = parseFloat(value);
+                    } else if (sliderId === 'frequency1') {
+                        simulator.source1.frequency = parseFloat(value);
+                    } else if (sliderId === 'frequency2') {
+                        simulator.source2.frequency = parseFloat(value);
+                    } else if (sliderId === 'phase1') {
+                        simulator.source1.phase = parseFloat(value);
+                    } else if (sliderId === 'phase2') {
+                        simulator.source2.phase = parseFloat(value);
+                    } else if (sliderId === 'separation') {
+                        simulator.separation = parseFloat(value);
+                        simulator.updateSourcePositions();
+                    }
+                    
+                    simulator.draw();
+                    simulator.drawPattern();
+                });
+            });
+            
+            // Initial draw
+            simulator.draw();
+            simulator.drawPattern();
+        });
+    </script>
+</body>
+</html>
