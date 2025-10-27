@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heat Conduction - Iron Rod & Nails</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 95%;
+            height: 95%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            display: flex;
+        }
+        
+        .simulation-area {
+            flex: 3;
+            position: relative;
+            background: linear-gradient(to bottom, #1a1a2e, #16213e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #simulationCanvas {
+            background: rgba(30, 30, 60, 0.3);
+            border-radius: 10px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .controls-panel {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #ff6b35;
+            font-size: 1.8rem;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .control-title {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        
+        .value-display {
+            font-weight: bold;
+            color: #ff6b35;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #4a4a4a;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ff6b35;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            background: #4a4a4a;
+            color: white;
+            border: none;
+            outline: none;
+        }
+        
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(to right, #ff6b35, #f7931e);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .info-panel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .info-title {
+            font-size: 1.2rem;
+            color: #ff6b35;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .info-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .info-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .info-value {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 5px;
+            color: #ff6b35;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .instructions h3 {
+            color: #ff6b35;
+            margin-bottom: 10px;
+        }
+        
+        .instructions p {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+        }
+        
+        .status-dot.paused {
+            background: #FF9800;
+        }
+        
+        .status-text {
+            font-size: 0.9rem;
+        }
+        
+        .color-scale {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .color-bar {
+            width: 250px;
+            height: 20px;
+            background: linear-gradient(to right, #1a2980, #26d0ce, #00ff88, #ffff00, #ff0000);
+            border-radius: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .color-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 250px;
+            font-size: 0.8rem;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .simulation-area {
+                flex: 2;
+            }
+            
+            .controls-panel {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="simulation-area">
+            <canvas id="simulationCanvas" width="800" height="500"></canvas>
+            
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <div class="status-text" id="statusText">Ready</div>
+            </div>
+            
+            <div class="color-scale">
+                <div class="color-bar"></div>
+                <div class="color-labels">
+                    <span>Cold (20°C)</span>
+                    <span>Hot (600°C)</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <h1>Heat Conduction</h1>
+            
+            <div class="control-group">
+                <div class="control-title">
+                    <span>Burner Temperature</span>
+                    <span id="burnerTempValue" class="value-display">600°C</span>
+                </div>
+                <input type="range" id="burnerTempSlider" min="200" max="1000" value="600" step="50">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-title">
+                    <span>Rod Material</span>
+                    <span id="materialValue" class="value-display">Iron</span>
+                </div>
+                <select id="materialSelect">
+                    <option value="iron">Iron</option>
+                    <option value="copper">Copper</option>
+                    <option value="aluminum">Aluminum</option>
+                    <option value="steel">Steel</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-title">
+                    <span>Wax Melting Point</span>
+                    <span id="waxValue" class="value-display">80°C</span>
+                </div>
+                <input type="range" id="waxSlider" min="50" max="150" value="80" step="5">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-title">
+                    <span>Simulation Speed</span>
+                    <span id="speedValue" class="value-display">Normal</span>
+                </div>
+                <input type="range" id="speedSlider" min="1" max="10" value="5" step="1">
+            </div>
+            
+            <div class="button-group">
+                <button id="startButton">Start Simulation</button>
+                <button id="resetButton">Reset Simulation</button>
+            </div>
+            
+            <div class="info-panel">
+                <h2 class="info-title">Heat Transfer Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Heat Flow Rate</div>
+                        <div id="heatFlowValue" class="info-value">0.0 W</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Nails Detached</div>
+                        <div id="nailsValue" class="info-value">0/8</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Time Elapsed</div>
+                        <div id="timeValue" class="info-value">0.0 s</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Max Temperature</div>
+                        <div id="maxTempValue" class="info-value">20°C</div>
+                    </div>
+                </div>
+            </div>
+            
+
+        </div>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        const burnerTempSlider = document.getElementById('burnerTempSlider');
+        const materialSelect = document.getElementById('materialSelect');
+        const waxSlider = document.getElementById('waxSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const burnerTempValue = document.getElementById('burnerTempValue');
+        const materialValue = document.getElementById('materialValue');
+        const waxValue = document.getElementById('waxValue');
+        const speedValue = document.getElementById('speedValue');
+        const startButton = document.getElementById('startButton');
+        const resetButton = document.getElementById('resetButton');
+        
+        // Info panel elements
+        const heatFlowValue = document.getElementById('heatFlowValue');
+        const nailsValue = document.getElementById('nailsValue');
+        const timeValue = document.getElementById('timeValue');
+        const maxTempValue = document.getElementById('maxTempValue');
+        
+        // Status indicator
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+
+        // Simulation parameters
+        let burnerTemperature = parseInt(burnerTempSlider.value); // °C
+        let material = materialSelect.value;
+        let waxMeltingPoint = parseInt(waxSlider.value); // °C
+        let speed = parseInt(speedSlider.value); // 1-10 scale
+        let isRunning = false;
+        let animationId = null;
+        let timeElapsed = 0;
+        
+        // Material conductivity values (relative scale)
+        const materialConductivity = {
+            'iron': 5,
+            'copper': 9,
+            'aluminum': 7,
+            'steel': 4
+        };
+        
+        // Rod properties
+        const rod = {
+            segments: 100,
+            segmentWidth: canvas.width / 100,
+            height: 30,
+            y: canvas.height / 2 - 15,
+            temperatures: new Array(100).fill(20), // Start at room temperature
+            nails: []
+        };
+        
+        // Initialize nails along the rod
+        function initializeNails() {
+            rod.nails = [];
+            const nailCount = 8;
+            const spacing = rod.segments / (nailCount + 1);
+            
+            for (let i = 1; i <= nailCount; i++) {
+                const segmentIndex = Math.floor(i * spacing);
+                rod.nails.push({
+                    segmentIndex: segmentIndex,
+                    x: segmentIndex * rod.segmentWidth + rod.segmentWidth / 2,
+                    y: rod.y + rod.height + 5, // Position below the rod
+                    attached: true,
+                    fallProgress: 0,
+                    fallSpeed: 0,
+                    rotation: 0,
+                    rotationSpeed: 0
+                });
+            }
+        }
+        
+        // Update display values when controls change
+        burnerTempSlider.addEventListener('input', function() {
+            burnerTemperature = parseInt(this.value);
+            burnerTempValue.textContent = burnerTemperature + '°C';
+        });
+        
+        materialSelect.addEventListener('change', function() {
+            material = this.value;
+            materialValue.textContent = this.options[this.selectedIndex].text;
+            resetSimulation();
+        });
+        
+        waxSlider.addEventListener('input', function() {
+            waxMeltingPoint = parseInt(this.value);
+            waxValue.textContent = waxMeltingPoint + '°C';
+        });
+        
+        speedSlider.addEventListener('input', function() {
+            speed = parseInt(this.value);
+            const speedLabels = ['Very Slow', 'Slow', 'Medium-Slow', 'Medium', 'Medium-Fast', 'Fast', 'Very Fast', 'Extreme', 'Ultra', 'Max'];
+            speedValue.textContent = speedLabels[speed-1];
+        });
+        
+        // Button event listeners
+        startButton.addEventListener('click', function() {
+            if (!isRunning) {
+                isRunning = true;
+                startButton.textContent = 'Pause Simulation';
+                statusDot.classList.remove('paused');
+                statusText.textContent = 'Running';
+                runSimulation();
+            } else {
+                isRunning = false;
+                startButton.textContent = 'Resume Simulation';
+                statusDot.classList.add('paused');
+                statusText.textContent = 'Paused';
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+            }
+        });
+        
+        resetButton.addEventListener('click', function() {
+            resetSimulation();
+        });
+        
+        // Reset simulation to initial state
+        function resetSimulation() {
+            isRunning = false;
+            startButton.textContent = 'Start Simulation';
+            statusDot.classList.add('paused');
+            statusText.textContent = 'Ready';
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            // Reset temperatures
+            rod.temperatures.fill(20);
+            timeElapsed = 0;
+            
+            // Reinitialize nails
+            initializeNails();
+            
+            drawScene();
+            updateInfoPanel();
+        }
+        
+        // Run the simulation
+        function runSimulation() {
+            if (!isRunning) return;
+            
+            // Update physics multiple times based on speed
+            const steps = Math.floor(speed / 2) + 1;
+            for (let i = 0; i < steps; i++) {
+                updatePhysics();
+            }
+            
+            // Draw the scene
+            drawScene();
+            
+            // Update information panel
+            updateInfoPanel();
+            
+            // Continue animation
+            animationId = requestAnimationFrame(runSimulation);
+        }
+        
+        // Update physics calculations
+        function updatePhysics() {
+            // Apply heat from burner at left end
+            rod.temperatures[0] = burnerTemperature;
+            
+            // Create a copy of current temperatures for calculation
+            const newTemperatures = [...rod.temperatures];
+            
+            // Calculate heat diffusion (simplified 1D heat equation)
+            const conductivityFactor = materialConductivity[material] / 10;
+            const timeStep = 0.1;
+            
+            for (let i = 1; i < rod.segments - 1; i++) {
+                // Heat diffusion from neighbors
+                const leftDiff = rod.temperatures[i-1] - rod.temperatures[i];
+                const rightDiff = rod.temperatures[i+1] - rod.temperatures[i];
+                
+                // Update temperature based on heat flow
+                newTemperatures[i] += conductivityFactor * timeStep * (leftDiff + rightDiff);
+                
+                // Clamp temperature to reasonable values
+                newTemperatures[i] = Math.max(20, Math.min(burnerTemperature, newTemperatures[i]));
+            }
+            
+            // Update temperatures
+            rod.temperatures = newTemperatures;
+            
+            // Update nails - check if wax has melted
+            for (let nail of rod.nails) {
+                if (nail.attached) {
+                    const nailTemp = rod.temperatures[nail.segmentIndex];
+                    if (nailTemp >= waxMeltingPoint) {
+                        nail.attached = false;
+                        nail.rotationSpeed = (Math.random() - 0.5) * 0.2; // Random rotation
+                    }
+                } else {
+                    // Nail is falling
+                    nail.fallProgress += 0.02;
+                    nail.fallSpeed += 0.2;
+                    nail.y += nail.fallSpeed;
+                    nail.rotation += nail.rotationSpeed;
+                    
+                    // Add some horizontal movement
+                    nail.x += (Math.random() - 0.5) * 2;
+                }
+            }
+            
+            // Update time
+            timeElapsed += timeStep;
+        }
+        
+        // Draw the scene
+        function drawScene() {
+            // Clear canvas with dark background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(1, '#16213e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            const gridSize = 50;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw burner
+            drawBurner();
+            
+            // Draw the iron rod with realistic appearance
+            drawIronRod();
+            
+            // Draw nails
+            drawNails();
+            
+            // Draw heat glow effect
+            drawHeatGlow();
+            
+            // Draw title
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Heat Conduction Through Iron Rod', canvas.width / 2, 40);
+        }
+        
+        // Draw the burner
+        function drawBurner() {
+            const burnerX = 0;
+            const burnerY = rod.y + rod.height+50;
+            const burnerWidth = 60;
+            const burnerHeight = 40;
+            
+            // Burner base
+            ctx.fillStyle = '#333333';
+            ctx.fillRect(burnerX, burnerY, burnerWidth, burnerHeight);
+            
+            // Burner top
+            ctx.fillStyle = '#555555';
+            ctx.beginPath();
+            ctx.moveTo(burnerX, burnerY);
+            ctx.lineTo(burnerX + burnerWidth, burnerY);
+            ctx.lineTo(burnerX + burnerWidth - 10, burnerY - 10);
+            ctx.lineTo(burnerX + 10, burnerY - 10);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Flame
+            const flameHeight = 30 + Math.sin(timeElapsed * 5) * 5;
+            const flameGradient = ctx.createLinearGradient(burnerX + 20, burnerY - 10, burnerX + 20, burnerY - 10 - flameHeight);
+            flameGradient.addColorStop(0, '#ff3300');
+            flameGradient.addColorStop(0.7, '#ffaa00');
+            flameGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
+            
+            ctx.fillStyle = flameGradient;
+            ctx.beginPath();
+            ctx.moveTo(burnerX + 15, burnerY - 10);
+            ctx.lineTo(burnerX + 25, burnerY - 10);
+            ctx.lineTo(burnerX + 20, burnerY - 10 - flameHeight);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Flame glow
+            ctx.fillStyle = 'rgba(255, 100, 0, 0.3)';
+            ctx.beginPath();
+            ctx.arc(burnerX + 20, burnerY - 10 - flameHeight/2, flameHeight/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Burner label
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('BURNER', burnerX + 30, burnerY + 60);
+        }
+        
+        // Draw the iron rod with realistic appearance
+        function drawIronRod() {
+            for (let i = 0; i < rod.segments; i++) {
+                const temp = rod.temperatures[i];
+                const x = i * rod.segmentWidth;
+                
+                // Calculate color based on temperature (iron gets red when hot)
+                const color = temperatureToIronColor(temp, burnerTemperature);
+                
+                // Draw rod segment
+                ctx.fillStyle = color;
+                ctx.fillRect(x, rod.y, rod.segmentWidth, rod.height);
+                
+                // Add metal texture (only when not too hot)
+                if (temp < 300) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                    ctx.fillRect(x, rod.y, rod.segmentWidth, 2);
+                    
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                    ctx.fillRect(x, rod.y + rod.height - 2, rod.segmentWidth, 2);
+                }
+                
+                // Add segment dividers
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x, rod.y, rod.segmentWidth, rod.height);
+            }
+            
+            // Draw rod label
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('IRON ROD', canvas.width / 2, rod.y + rod.height + 30);
+        }
+        
+        // Draw all nails
+        function drawNails() {
+            for (let nail of rod.nails) {
+                if (nail.y < canvas.height + 50) { // Only draw if not too far fallen
+                    drawNail(nail.x, nail.y, nail.attached, nail.rotation);
+                }
+            }
+        }
+        
+        // Draw a single nail
+        function drawNail(x, y, attached, rotation) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotation);
+            
+            // Nail shank
+            ctx.fillStyle = '#aaaaaa';
+            ctx.fillRect(-2, 0, 4, 25);
+            
+            // Nail head
+            ctx.fillStyle = '#888888';
+            ctx.beginPath();
+            ctx.arc(0, -3, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Wax blob if attached
+            if (attached) {
+                const waxTemp = rod.temperatures[Math.floor((x) / rod.segmentWidth)];
+                const waxColor = waxTemp >= waxMeltingPoint ? 
+                    'rgba(200, 100, 100, 0.7)' : // Melted wax
+                    'rgba(200, 200, 250, 0.7)';   // Solid wax
+                
+                ctx.fillStyle = waxColor;
+                ctx.beginPath();
+                ctx.arc(0, 25, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Wax connecting to rod
+                ctx.beginPath();
+                ctx.moveTo(-3, 25);
+                ctx.lineTo(-3, -rod.height);
+                ctx.lineTo(3, -rod.height);
+                ctx.lineTo(3, 25);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        }
+        
+        // Draw heat glow effect around hot parts of the rod
+        function drawHeatGlow() {
+            for (let i = 0; i < rod.segments; i++) {
+                const temp = rod.temperatures[i];
+                if (temp > 300) {
+                    const x = i * rod.segmentWidth + rod.segmentWidth / 2;
+                    const intensity = Math.min(1, (temp - 300) / 300);
+                    
+                    const glowGradient = ctx.createRadialGradient(x, rod.y + rod.height / 2, 0, x, rod.y + rod.height / 2, 40);
+                    glowGradient.addColorStop(0, `rgba(255, 100, 0, ${intensity * 0.4})`);
+                    glowGradient.addColorStop(1, 'rgba(255, 50, 0, 0)');
+                    
+                    ctx.fillStyle = glowGradient;
+                    ctx.beginPath();
+                    ctx.arc(x, rod.y + rod.height / 2, 40, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // Convert temperature to iron color (gray to red)
+        function temperatureToIronColor(temp, maxTemp) {
+            if (temp < 200) {
+                // Cold iron - metallic gray
+                const grayValue = 100 + (temp / 200) * 50;
+                return `rgb(${grayValue}, ${grayValue}, ${grayValue})`;
+            } else {
+                // Hot iron - red glow
+                const heatIntensity = Math.min(1, (temp - 200) / (maxTemp - 200));
+                const r = 150 + heatIntensity * 105;
+                const g = 100 - heatIntensity * 100;
+                const b = 100 - heatIntensity * 100;
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+        }
+        
+        // Update information panel
+        function updateInfoPanel() {
+            // Calculate heat flow rate (simplified)
+            const tempDifference = burnerTemperature - 20;
+            const conductivity = materialConductivity[material];
+            const heatFlow = (tempDifference * conductivity / 5).toFixed(2);
+            
+            // Count detached nails
+            const detachedNails = rod.nails.filter(nail => !nail.attached).length;
+            const totalNails = rod.nails.length;
+            
+            // Find maximum temperature
+            const maxTemp = Math.max(...rod.temperatures);
+            
+            // Update display values
+            heatFlowValue.textContent = heatFlow + ' W';
+            nailsValue.textContent = detachedNails + '/' + totalNails;
+            timeValue.textContent = timeElapsed.toFixed(1) + ' s';
+            maxTempValue.textContent = Math.round(maxTemp) + '°C';
+        }
+        
+        // Initialize the simulation
+        initializeNails();
+        resetSimulation();
+    </script>
+</body>
+</html>

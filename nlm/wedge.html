@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Realistic Wedge–Block Simulation</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    overflow: hidden;
+    height: 100%;
+    background: #f4f4f4;
+  }
+  #controls {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: rgba(255,255,255,0.9);
+    padding: 10px 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    font-family: sans-serif;
+  }
+  label { display:block; margin-top:8px; font-size:14px; }
+  input { width:150px; }
+</style>
+</head>
+<body>
+<canvas id="simCanvas"></canvas>
+<div id="controls">
+  <label>Angle (°): <span id="angleValue">30</span></label>
+  <input type="range" id="angleSlider" min="0" max="60" step="1" value="30">
+  <label>Friction μ: <span id="muValue">0.3</span></label>
+  <input type="range" id="muSlider" min="0" max="1" step="0.01" value="0.3">
+  <button id="startBtn">Start / Pause</button>
+  <button id="resetBtn">Reset</button>
+</div>
+
+<script>
+const canvas = document.getElementById("simCanvas");
+const ctx = canvas.getContext("2d");
+let W = window.innerWidth, H = window.innerHeight;
+canvas.width = W; canvas.height = H;
+
+let g = 9.8;
+let angleDeg = 30;
+let mu = 0.3;
+let running = false;
+
+const block = { s: 0, v: 0, a: 0, size: 40 }; // s: distance along slope
+
+function drawGrid() {
+  ctx.strokeStyle = "#ddd";
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < W; x += 50) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+  for (let y = 0; y < H; y += 50) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+}
+
+function drawAxes() {
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, H - 50);
+  ctx.lineTo(W, H - 50);
+  ctx.moveTo(50, 0);
+  ctx.lineTo(50, H);
+  ctx.stroke();
+}
+
+function drawWedge(theta) {
+  const base = W * 0.4;
+  const startX = W * 0.3;
+  const startY = H - 100;
+  const endX = startX + base;
+  const endY = startY - Math.tan(theta) * base;
+
+  ctx.fillStyle = "#999";
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(endX, endY);
+  ctx.lineTo(endX, startY);
+  ctx.closePath();
+  ctx.fill();
+
+  return { startX, startY, endX, endY, base };
+}
+
+function positionOnSlope(wedge, theta, s) {
+  // s: distance along slope from top
+  const totalLength = wedge.base / Math.cos(theta);
+  const t = s / totalLength; // fraction along slope
+  const x = wedge.endX - t * (wedge.endX - wedge.startX);
+  const y = wedge.endY - t * (wedge.endY - wedge.startY);
+  return { x, y };
+}
+
+function drawBlock(x, y, theta) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(-theta);
+  ctx.fillStyle = "tomato";
+  ctx.fillRect(-block.size/2, -block.size, block.size, block.size);
+  ctx.restore();
+}
+
+function updatePhysics(dt, theta) {
+  const tanInv = Math.atan(mu);
+  const shouldSlide = theta > tanInv;
+  if (!shouldSlide) {
+    block.a = 0;
+    block.v = 0;
+    return;
+  }
+  block.a = g * (Math.sin(theta) - mu * Math.cos(theta));
+  block.v += block.a * dt;
+  block.s += block.v * dt * 100; // scaled for visibility
+}
+
+function animate() {
+  ctx.clearRect(0,0,W,H);
+  drawGrid();
+  drawAxes();
+
+  const theta = angleDeg * Math.PI / 180;
+  const wedge = drawWedge(theta);
+
+  const pos = positionOnSlope(wedge, theta, block.s);
+  drawBlock(pos.x, pos.y, theta);
+
+  if (running) updatePhysics(0.016, theta);
+
+  requestAnimationFrame(animate);
+}
+
+function resetBlock() {
+  block.s = 0; // start from top
+  block.v = 0;
+  block.a = 0;
+}
+
+document.getElementById("angleSlider").oninput = e=>{
+  angleDeg = parseFloat(e.target.value);
+  document.getElementById("angleValue").textContent = angleDeg;
+  resetBlock();
+};
+document.getElementById("muSlider").oninput = e=>{
+  mu = parseFloat(e.target.value);
+  document.getElementById("muValue").textContent = mu.toFixed(2);
+  resetBlock();
+};
+document.getElementById("startBtn").onclick = ()=> running = !running;
+document.getElementById("resetBtn").onclick = ()=> { running = false; resetBlock(); };
+
+window.addEventListener("resize", ()=>{
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W; canvas.height = H;
+  resetBlock();
+});
+
+resetBlock();
+animate();
+</script>
+</body>
+</html>

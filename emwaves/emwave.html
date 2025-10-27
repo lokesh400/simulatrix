@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D EM Wave Propagation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        .controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            z-index: 100;
+        }
+        .slider-container {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="color:white; text-align:center; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 100">3D Electromagnetic Wave Propagation</h1>
+    <div class="controls">
+        <div class="slider-container">
+            <label for="frequency">Frequency (Hz): </label>
+            <input type="range" id="frequency" min="1" max="100" step="1" value="10">
+            <span id="freqValue">10 Hz</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/build/three.min.js"></script>
+    <script>
+        let scene, camera, renderer;
+        let electricField, magneticField;
+        let time = 0;
+        const amplitude = 5;
+        let frequency = parseFloat(document.getElementById('frequency').value);
+        let waveLength = 10;
+        let angularFrequency = 2 * Math.PI * frequency;
+        let waveNumber = 2 * Math.PI / waveLength;
+
+        // Set up scene, camera, and renderer
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Axes helper for XYZ reference
+            const axesHelper = new THREE.AxesHelper(5);
+            scene.add(axesHelper);
+
+            // Set up geometry for sinusoidal curves for E and B fields
+            const curveMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+
+            // Electric field in the x-direction (sinusoidal curve)
+            electricField = createSinusoidalCurve(0x00ff00); // Green for E-field
+            electricField.position.x = -5;
+            scene.add(electricField);
+
+            // Magnetic field in the y-direction (sinusoidal curve)
+            magneticField = createSinusoidalCurve(0xff0000); // Red for B-field
+            magneticField.position.y = -5;
+            scene.add(magneticField);
+
+            camera.position.z = 15;
+
+            // Handle frequency slider input
+            document.getElementById('frequency').addEventListener('input', function() {
+                frequency = parseFloat(this.value);
+                angularFrequency = 2 * Math.PI * frequency;
+                waveNumber = 2 * Math.PI / waveLength;
+                document.getElementById('freqValue').innerText = `${frequency} Hz`;
+            });
+
+            animate();
+        }
+
+        // Function to create a sinusoidal curve
+        function createSinusoidalCurve(color) {
+            const geometry = new THREE.BufferGeometry();
+            const points = [];
+            const numPoints = 100;
+            const length = 20;
+
+            for (let i = 0; i <= numPoints; i++) {
+                const x = i * length / numPoints - length / 2;
+                const y = amplitude * Math.sin(waveNumber * x); // Sinusoidal function
+                const z = 0;
+                points.push(new THREE.Vector3(x, y, z));
+            }
+
+            geometry.setFromPoints(points);
+            const curve = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color }));
+            return curve;
+        }
+
+        // Update wave propagation
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;  // Simulate real-time propagation
+
+            // Update sinusoidal curves for electric and magnetic fields based on time
+            updateSinusoidalCurve(electricField, time, 0x00ff00, 'x'); // Electric field on X
+            updateSinusoidalCurve(magneticField, time, 0xff0000, 'y'); // Magnetic field on Y
+
+            // Render the scene
+            renderer.render(scene, camera);
+        }
+
+        // Update position and values of the sinusoidal curves
+        function updateSinusoidalCurve(curve, time, color, axis) {
+            const geometry = curve.geometry;
+            const points = geometry.attributes.position.array;
+            const numPoints = points.length / 3;
+
+            for (let i = 0; i < numPoints; i++) {
+                const x = points[i * 3];
+                let y, z;
+
+                // Electric field along the X axis
+                if (axis === 'x') {
+                    y = amplitude * Math.sin(waveNumber * x - angularFrequency * time);
+                    z = x + time;
+                }
+                // Magnetic field along the Y axis
+                else if (axis === 'y') {
+                    y = x + time;
+                    z = amplitude * Math.sin(waveNumber * x - angularFrequency * time);
+                }
+
+                // Update the position for each vertex
+                points[i * 3 + 1] = y;
+                points[i * 3 + 2] = z;
+            }
+
+            geometry.attributes.position.needsUpdate = true;
+        }
+
+        init();  // Initialize the scene
+    </script>
+</body>
+</html>
