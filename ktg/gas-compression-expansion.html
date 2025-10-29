@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gas Simulation - Dark Mode</title>
+<style>
+  body {
+    margin: 0;
+    background: radial-gradient(circle at center, #000 70%, #111);
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    color: #00eaff;
+  }
+  canvas {
+    background: #000;
+    border: 3px solid #00eaff;
+    border-radius: 12px;
+    box-shadow: 0 0 25px #00eaff55;
+    touch-action: none;
+  }
+  .info {
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #00eaff;
+    text-shadow: 0 0 5px #00ffff;
+  }
+</style>
+</head>
+<body>
+  <canvas id="sim" width="400" height="500"></canvas>
+  <div class="info" id="info"></div>
+
+  <script>
+    const canvas = document.getElementById("sim");
+    const ctx = canvas.getContext("2d");
+
+    const numParticles = 120;
+    const particles = [];
+    const wallThickness = 8;
+    const bottom = canvas.height - wallThickness;
+    const topLimit = 50;
+    const bottomLimit = 420;
+    let pistonY = 100;
+    let dragging = false;
+    let pressure = 1, volume = 1, temperature = 1;
+
+    // Initialize gas particles
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * (canvas.width - 2 * wallThickness - 10) + wallThickness + 5,
+        y: Math.random() * (bottomLimit - pistonY - 30) + pistonY + 30,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        r: 3
+      });
+    }
+
+    // Helper to get Y from mouse/touch
+    function getY(e) {
+      return e.touches
+        ? e.touches[0].clientY - canvas.getBoundingClientRect().top
+        : e.offsetY;
+    }
+
+    // Mouse/touch events
+    canvas.addEventListener("mousedown", e => {
+      const y = getY(e);
+      if (y > pistonY - 20 && y < pistonY + 20) dragging = true;
+    });
+    canvas.addEventListener("mousemove", e => {
+      if (dragging) pistonY = Math.min(Math.max(getY(e), topLimit), bottomLimit);
+    });
+    canvas.addEventListener("mouseup", () => dragging = false);
+
+    canvas.addEventListener("touchstart", e => {
+      const y = getY(e);
+      if (y > pistonY - 20 && y < pistonY + 20) dragging = true;
+    });
+    canvas.addEventListener("touchmove", e => {
+      if (dragging) pistonY = Math.min(Math.max(getY(e), topLimit), bottomLimit);
+    });
+    canvas.addEventListener("touchend", () => dragging = false);
+
+    function update() {
+      const chamberHeight = bottomLimit - pistonY;
+      volume = chamberHeight / (bottomLimit - topLimit);
+      pressure = (1 / volume).toFixed(2);
+      temperature = (pressure * 1).toFixed(2);
+
+      const speedFactor = 1 + (1 / volume - 1) * 0.9;
+
+      // Update particle motion
+      particles.forEach(p => {
+        p.x += p.vx * speedFactor;
+        p.y += p.vy * speedFactor;
+
+        // Collision with side walls
+        if (p.x < wallThickness + p.r) {
+          p.x = wallThickness + p.r;
+          p.vx = Math.abs(p.vx);
+        }
+        if (p.x > canvas.width - wallThickness - p.r) {
+          p.x = canvas.width - wallThickness - p.r;
+          p.vx = -Math.abs(p.vx);
+        }
+
+        // Collision with piston
+        if (p.y < pistonY + wallThickness + p.r) {
+          p.y = pistonY + wallThickness + p.r;
+          p.vy = Math.abs(p.vy);
+        }
+
+        // Collision with bottom
+        if (p.y > bottom - p.r - wallThickness) {
+          p.y = bottom - p.r - wallThickness;
+          p.vy = -Math.abs(p.vy);
+        }
+      });
+    }
+
+    function drawContainer() {
+      ctx.fillStyle = "#00eaff";
+      // left and right walls
+      ctx.fillRect(0, 0, wallThickness, canvas.height);
+      ctx.fillRect(canvas.width - wallThickness, 0, wallThickness, canvas.height);
+      // bottom
+      ctx.fillRect(0, bottom, canvas.width, wallThickness);
+    }
+
+    function drawPiston() {
+      ctx.fillStyle = "#00eaff";
+      ctx.fillRect(wallThickness, pistonY, canvas.width - 2 * wallThickness, wallThickness * 2);
+
+      // piston rod
+      ctx.fillStyle = "#00bfff";
+      ctx.fillRect(canvas.width / 2 - 8, pistonY - 40, 16, 40);
+
+      // finger
+      if (dragging) {
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, pistonY - 50, 15, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffb703";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#ffb703";
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function drawParticles() {
+      particles.forEach(p => {
+        const color = `hsl(${180 + Math.random() * 80}, 100%, ${50 + Math.random() * 30}%)`;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawContainer();
+      drawPiston();
+      update();
+      drawParticles();
+
+      document.getElementById("info").innerText =
+        `Pressure: ${pressure} atm | Volume: ${volume.toFixed(2)} | Temperature: ${temperature} K`;
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

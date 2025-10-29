@@ -2,9 +2,7 @@
 <html>
 <head>
     <title>Vernier Caliper Simulator</title>
-    <meta name="keywords" content="vernier simulation physics measurement">
-    <meta name="author" content="Mahesh Kurmi">
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             background: white;
@@ -186,8 +184,8 @@
     var dragMode = 0;  
 
     var mx, my;
-    var bgColor = "rgb(0,64,84)";
-    var fgColor = "orange";
+    var bgColor = "rgb(0,0,0)";
+    var fgColor = "red";
     const scaleColor = "black";
 
     var loadedItems = 0;
@@ -216,6 +214,7 @@
     tickSound.onload=itemloaded;
     tickSound.preload = 'auto';
     tickSound.load();
+    let intiScale = 1;
     const scaleOriginX=67; //jaw Left position
     const scaleOriginY0=105; //scale top position
     const scaleOriginY=162; //scale bottom position
@@ -303,6 +302,25 @@
  
     var ctx=canvas.getContext("2d");
     ctx.font = "30px Arial";
+    // Add touch/pointer listeners when Hammer.js isn't present to enable direct touch support
+    if (typeof Hammer === 'undefined') {
+        canvas.addEventListener('touchstart', myTouchStart, {passive: false});
+        canvas.addEventListener('touchmove', myTouchMove, {passive: false});
+        canvas.addEventListener('touchend', myTouchEnd, {passive: false});
+
+        canvas.addEventListener('pointerdown', function (e) {
+            const mouseEvent = new MouseEvent('mousedown', {clientX: e.clientX, clientY: e.clientY});
+            mousePressed(mouseEvent);
+        });
+        canvas.addEventListener('pointermove', function (e) {
+            const mouseEvent = new MouseEvent('mousemove', {clientX: e.clientX, clientY: e.clientY});
+            mouseDragged(mouseEvent);
+        });
+        canvas.addEventListener('pointerup', function (e) {
+            const mouseEvent = new MouseEvent('mouseup', {clientX: e.clientX, clientY: e.clientY});
+            mouseReleased(mouseEvent);
+        });
+    }
     //Add event listeners
     window.addEventListener('resize',function(ev) { return resize(ev); });
     paint();

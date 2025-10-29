@@ -1,10 +1,9 @@
 <!doctype html>
 <html>
+
 <head>
     <title>Screw Gauge</title>
-    <meta name="keywords" content="screw gauge simulation physics measurement">
-    <meta name="author" content="Mahesh Kurmi">
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             background: white;
@@ -18,21 +17,26 @@
             text-align: center;
             font-family: Helvetica neue, roboto;
         }
+
         img {
             width: 56px;
             height: 48px;
         }
+
         h1 {
             font-weight: 200;
             margin: 10px;
         }
+
         #container canvas {
             position: relative;
             touch-action: none;
         }
+
         #container #overlay {
             position: absolute;
         }
+
         .hover_bkgr_fricc {
             background: rgba(0, 0, 0, .4);
             cursor: pointer;
@@ -44,11 +48,13 @@
             width: 100%;
             z-index: 10000;
         }
+
         .hover_bkgr_fricc .helper {
             display: inline-block;
             height: 100%;
             vertical-align: middle;
         }
+
         .hover_bkgr_fricc>div {
             background-color: #fff;
             box-shadow: 10px 10px 60px #555;
@@ -62,6 +68,7 @@
             border-radius: 8px;
             padding: 15px 5%;
         }
+
         .popupCloseButton {
             background-color: #fff;
             border: 3px solid #999;
@@ -79,9 +86,11 @@
             height: 30px;
             text-align: center;
         }
+
         .popupCloseButton:hover {
             background-color: #ccc;
         }
+
         .trigger_popup_fricc {
             background-color: #fff;
             border: 3px solid #999;
@@ -94,7 +103,7 @@
             position: absolute;
             top: 5px;
             left: 5px;
-            zindex: 2;
+            z-index: 2;
             margin: 10px;
             display: inline-block;
             font-weight: bold;
@@ -105,6 +114,7 @@
             height: 30px;
             text-align: center;
         }
+
         #gui {
             font-size: 15px;
             position: absolute;
@@ -115,10 +125,155 @@
             position: absolute;
             right: 5px;
             margin-left: auto;
-            zindex: 2;
+            z-index: 2;
             font-weight: bold;
             font-size: 25px;
         }
+
+        /* Touch-friendly rotation slider */
+        .rotation-control {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 15px 20px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .rotation-control h3 {
+            color: white;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 300px;
+        }
+
+        .rotation-slider {
+            flex: 1;
+            height: 8px;
+            background: linear-gradient(to right, #ff4444, #ffaa00, #44ff44, #00aaff, #4444ff);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .rotation-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            border: 2px solid #333;
+            transition: all 0.2s ease;
+        }
+
+        .rotation-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .rotation-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            border: 2px solid #333;
+            transition: all 0.2s ease;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .rotation-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .rotation-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .rotation-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        .rotation-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .reading-display {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .reading-display .main-reading {
+            color: #4CAF50;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .reading-display .sub-reading {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+        }
+
+        /* Hide on very small screens */
+        @media (max-width: 480px) {
+            .rotation-control {
+                left: 10px;
+                right: 10px;
+                transform: none;
+            }
+
+            .slider-container {
+                min-width: auto;
+            }
+        }
+
         :root {
             --tp-base-background-color: hsla(200, 6%, 15%, 0.8);
             --tp-base-shadow-color: hsla(0, 0%, 0%, 0.26);
@@ -146,6 +301,7 @@
     <script src="./hammer.js"></script>
     <script src="./tweakpane3.js"></script>
 </head>
+
 <body>
     <div class="container">
         <div id="gui" style="position: absolute">
@@ -153,14 +309,36 @@
         <canvas id="myCanvas" style="border: 1px solid #c3c3c3;">
             Your browser does not support the HTML5 canvas tag.
         </canvas>
-        <a class="trigger_popup_fricc"> &#8505;</a>
-        <div id="overlay">
+        <a class="trigger_popup_fricc"></a>
             <div class="hover_bkgr_fricc">
-                <span class="helper"></span>
                 <div>
                     <div class="popupCloseButton">&times;</div>
                 </div>
+        </div>
+    </div>
+
+    <!-- Touch-friendly rotation control -->
+    <div class="rotation-control" id="rotationControl">
+        <h3>🔧 Thimble Rotation Control</h3>
+        <div class="slider-container">
+            <div class="rotation-buttons">
+                <button class="rotation-btn" id="rotateLeft" title="Rotate Left">←</button>
             </div>
+            <div style="flex: 1;">
+                <input type="range" class="rotation-slider" id="rotationSlider" min="0" max="1000" value="500" step="1">
+                <div class="slider-labels">
+                    <span>Close</span>
+                    <span>Center</span>
+                    <span>Open</span>
+                </div>
+            </div>
+            <div class="rotation-buttons">
+                <button class="rotation-btn" id="rotateRight" title="Rotate Right">→</button>
+            </div>
+        </div>
+        <div class="reading-display">
+            <div class="main-reading" id="mainReading">0.000 mm</div>
+            <div class="sub-reading" id="subReading">MSR: 0 | CSR: 0</div>
         </div>
     </div>
     <script type='text/javascript'>
@@ -169,10 +347,10 @@
         var yOffset = 0;
         var dragMode = 0;
         var mx, my;
-        var bgColor = "rgb(0,64,84)";
-        var fgColor = "orange"
+        var bgColor = "rgb(0,0,0)";
+        var fgColor = "red"
         var loadedItems = 0;
-        const itemsToLoad = 5;
+        const itemsToLoad = 4;
         var imgThimble = new Image();
         imgThimble.src = "thimble.png"
         imgThimble.onload = itemloaded;
@@ -185,9 +363,6 @@
         var imgTexture = new Image();
         imgTexture.src = "texture9.png"
         imgTexture.onload = itemloaded;
-        var thetestpulse = new Image();
-        thetestpulse.src = "simphy-logo.png"
-        thetestpulse.onload = itemloaded;
         var textPattern = null;
         var gradient = null;
         var tickSound = new Audio("tick.wav");
@@ -199,7 +374,7 @@
         const thimbleY1 = 49;
         const thimbleY2 = 40;
         const thimbleY3 = 31;
-        const thimbleX1 = 0; 
+        const thimbleX1 = 0;
         const thimbleX2 = 40;
         const thimbleX3 = 440;
         const unit = "mm";
@@ -236,11 +411,11 @@
         });
         const tab = pane.addTab({
             pages: [{
-                    title: 'Device settings'
-                },
-                {
-                    title: 'Create Problem'
-                },
+                title: 'Device settings'
+            },
+            {
+                title: 'Create Problem'
+            },
             ],
         });
         tab.pages[0].addInput(window, "msdValue", {
@@ -257,11 +432,11 @@
         }).on('change', update);
         var csController = tab.pages[0].addInput(window,
             "circularScaleDivisions", {
-                label: "CSD Count",
-                min: 25,
-                max: 100,
-                step: 25
-            });
+            label: "CSD Count",
+            min: 25,
+            max: 100,
+            step: 25
+        });
         csController.on('change', update);
         var zeController = tab.pages[0].addInput(window, "zeroError", {
             label: "Zero Error",
@@ -303,7 +478,31 @@
         scale = (canvas.width / 1500);
         var ctx = canvas.getContext("2d");
         ctx.font = "30px Arial";
-        window.addEventListener('resize', function(ev) {
+        // ensure canvas doesn't perform default touch actions
+        try { canvas.style.touchAction = 'none'; } catch (e) { }
+        // track whether Hammer has been initialized to avoid duplicate handling
+        window.hammerEnabled = false;
+        // Add basic touch/pointer handlers; they early-return when Hammer is active
+        canvas.addEventListener('touchstart', function (e) { if (window.hammerEnabled) return; myTouchStart(e); }, { passive: false });
+        canvas.addEventListener('touchmove', function (e) { if (window.hammerEnabled) return; myTouchMove(e); }, { passive: false });
+        canvas.addEventListener('touchend', function (e) { if (window.hammerEnabled) return; myTouchEnd(e); }, { passive: false });
+
+        canvas.addEventListener('pointerdown', function (e) {
+            if (window.hammerEnabled) return;
+            const mouseEvent = new MouseEvent('mousedown', { clientX: e.clientX, clientY: e.clientY });
+            mousePressed(mouseEvent);
+        });
+        canvas.addEventListener('pointermove', function (e) {
+            if (window.hammerEnabled) return;
+            const mouseEvent = new MouseEvent('mousemove', { clientX: e.clientX, clientY: e.clientY });
+            mouseDragged(mouseEvent);
+        });
+        canvas.addEventListener('pointerup', function (e) {
+            if (window.hammerEnabled) return;
+            const mouseEvent = new MouseEvent('mouseup', { clientX: e.clientX, clientY: e.clientY });
+            mouseReleased(mouseEvent);
+        });
+        window.addEventListener('resize', function (ev) {
             return resize(ev);
         });
         var hammertime;
@@ -326,31 +525,31 @@
                     direction: Hammer.DIRECTION_ALL,
                     threshold: 0,
                 });
-                hammertime.on('panstart', function(ev) {
+                hammertime.on('panstart', function (ev) {
                     let mouseEvent = new MouseEvent("mousedown", {
                         clientX: ev.center.x,
                         clientY: ev.center.y
                     });
                     mousePressed(mouseEvent);
                 });
-                hammertime.on('panend', function(ev) {
+                hammertime.on('panend', function (ev) {
                     let mouseEvent = new MouseEvent("mouseup", {
                         clientX: ev.center.x,
                         clientY: ev.center.y
                     });
                     mouseReleased(mouseEvent);
                 });
-                hammertime.on('panmove', function(ev) {
+                hammertime.on('panmove', function (ev) {
                     let mouseEvent = new MouseEvent("mousemove", {
                         clientX: ev.center.x,
                         clientY: ev.center.y
                     });
                     mouseDragged(mouseEvent);
                 });
-                hammertime.on('pinchstart', function(ev) {
+                hammertime.on('pinchstart', function (ev) {
                     intiScale = scale;
                 });
-                hammertime.on('pinch', function(ev) {
+                hammertime.on('pinch', function (ev) {
                     console.log(ev.type + " scale=" + ev.scale);
                     let oldScale = scale;
                     let x = ev.center.x / scale;
@@ -360,23 +559,29 @@
                     yOffset -= y * (scale - oldScale);
                     paint();
                 });
+                // mark Hammer as active so fallback handlers ignore duplicate events
+                window.hammerEnabled = true;
                 canvas.addEventListener("mousewheel", mouseWheelMoved);
                 window.addEventListener('keydown', onKeyEvent, false);
+
+                // Setup slider controls
+                setupSliderControls();
+
                 document.querySelector(".trigger_popup_fricc").onclick =
-                    function() {
+                    function () {
                         document.querySelector('.hover_bkgr_fricc').style
                             .display = "block";
                     };
                 document.querySelector('.hover_bkgr_fricc').onclick =
-            function() {
-                    document.querySelector('.hover_bkgr_fricc').style
-                        .display = "none";
-                };
+                    function () {
+                        document.querySelector('.hover_bkgr_fricc').style
+                            .display = "none";
+                    };
                 document.querySelector('.popupCloseButton').onclick =
-            function() {
-                    document.querySelector('.hover_bkgr_fricc').style
-                        .display = "none";
-                };
+                    function () {
+                        document.querySelector('.hover_bkgr_fricc').style
+                            .display = "none";
+                    };
             }
             paint();
         }
@@ -414,17 +619,22 @@
                 objectTobeMeasured.state = 2;
             } else if (objectTobeMeasured.x > canvas.width - objectTobeMeasured
                 .w || objectTobeMeasured.y > canvas.height - objectTobeMeasured
-                .w || objectTobeMeasured.x < objectTobeMeasured.w / 2 ||
+                    .w || objectTobeMeasured.x < objectTobeMeasured.w / 2 ||
                 objectTobeMeasured.y < -objectTobeMeasured.h / 2) {
                 objectTobeMeasured.x =
-                20;
+                    20;
                 objectTobeMeasured.y =
-                20;
+                    20;
             }
             pane.refresh();
             rotateVernier(0);
         }
+        var lastTickTime = 0;
+
         function rotateVernier(div) {
+            let oldCSR = csr;
+            let oldMSR = msr;
+
             csr += div;
             if (csr < 0) {
                 csr = circularScaleDivisions + csr;
@@ -437,18 +647,32 @@
             if (correctedReading <= 0) {
                 msr = 0;
                 csr = 0;
-                tickSound.muted = false;
-                if (tickSound.paused) tickSound.play();
+                playTickSound();
             }
             if (correctedReading >= mainScaleDivisions * msdValue) {
                 msr = mainScaleDivisions;
                 csr = 0;
-                tickSound.muted = false;
-                if (tickSound.paused) tickSound.play();
+                playTickSound();
             }
+
+            // Play tick sound for every 5 divisions or MSR change for better feedback
+            if (Math.abs(csr - oldCSR) >= 5 || msr != oldMSR) {
+                playTickSound();
+            }
+
             if (objectWidthPixel != 0) {
             }
             update();
+        }
+
+        function playTickSound() {
+            let currentTime = Date.now();
+            if (currentTime - lastTickTime > 50) { // Throttle sound to prevent overlap
+                tickSound.muted = false;
+                tickSound.currentTime = 0; // Reset to beginning
+                if (tickSound.paused) tickSound.play();
+                lastTickTime = currentTime;
+            }
         }
         function update() {
             msd_pixels = mainScaleLengthPixels / mainScaleDivisions;
@@ -474,7 +698,7 @@
                 ctx.font = "30px Arial";
                 ctx.fillStyle = fgColor;
                 outString(canvas.width / 2, canvas.height / 2, "Loading ..." + (
-                        loadedItems * 100 / itemsToLoad).toFixed(0) + "%",
+                    loadedItems * 100 / itemsToLoad).toFixed(0) + "%",
                     1, 1);
                 return;
             }
@@ -515,6 +739,30 @@
             let N = circularScaleDivisions / 4;
             let R = scaleOriginY - thimbleY1;
             ctx.drawImage(imgThimble, scaleOriginX + shift, thimbleY3);
+
+            // Add visual rotation indicator on thimble
+            let thimbleIndicatorX = scaleOriginX + shift + thimbleX2 + (thimbleX3 - thimbleX2) / 2;
+            let thimbleIndicatorY = scaleOriginY;
+            let indicatorRadius = (scaleOriginY - thimbleY3) * 0.8;
+            let rotationAngle = (csr / circularScaleDivisions) * 2 * Math.PI;
+
+            // Draw rotation indicator line
+            ctx.save();
+            ctx.strokeStyle = "rgba(255, 100, 100, 0.8)";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(thimbleIndicatorX, thimbleIndicatorY);
+            ctx.lineTo(thimbleIndicatorX + Math.cos(rotationAngle) * indicatorRadius,
+                thimbleIndicatorY + Math.sin(rotationAngle) * indicatorRadius);
+            ctx.stroke();
+
+            // Draw center dot
+            ctx.fillStyle = "rgba(255, 100, 100, 0.8)";
+            ctx.beginPath();
+            ctx.arc(thimbleIndicatorX, thimbleIndicatorY, 3, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
+
             ctx.rect(scaleOriginX + shift, thimbleY3, (thimbleX3 - thimbleX2 -
                 153), 2 * (scaleOriginY - thimbleY3 - 1));
             // ctx.clip();
@@ -593,7 +841,7 @@
             if (objectTobeMeasured.state > 0) {
                 let grd = ctx.createLinearGradient(objectTobeMeasured.x,
                     objectTobeMeasured.y, objectTobeMeasured.x +
-                    objectTobeMeasured.w, objectTobeMeasured.y);
+                objectTobeMeasured.w, objectTobeMeasured.y);
                 grd.addColorStop(0, "rgb(120,120,120)")
                 grd.addColorStop(0.5, "rgb(220,230,210)")
                 grd.addColorStop(1, "rgb(120,120,120)")
@@ -605,6 +853,46 @@
                     objectTobeMeasured.w, objectTobeMeasured.h);
                 ctx.fillStyle = fgColor;
             }
+            // Draw touch interaction feedback
+            if (dragMode == 2) {
+                let shift = (msr + csr / circularScaleDivisions) * msd_pixels;
+                let feedbackX = scaleOriginX + shift + thimbleX2 + (thimbleX3 - thimbleX2) / 2;
+                let feedbackY = scaleOriginY;
+                let feedbackRadius = (scaleOriginY - thimbleY3) + 30;
+
+                // Draw touch feedback circle
+                ctx.save();
+                ctx.strokeStyle = "rgba(100, 200, 255, 0.6)";
+                ctx.lineWidth = 4;
+                ctx.setLineDash([10, 5]);
+                ctx.beginPath();
+                ctx.arc(feedbackX, feedbackY, feedbackRadius, 0, 2 * Math.PI);
+                ctx.stroke();
+                ctx.restore();
+
+                // Draw rotation direction arrows
+                ctx.save();
+                ctx.fillStyle = "rgba(100, 200, 255, 0.8)";
+                ctx.font = "20px Arial";
+                ctx.fillText("↻", feedbackX - 40, feedbackY - feedbackRadius - 10);
+                ctx.fillText("↺", feedbackX + 30, feedbackY - feedbackRadius - 10);
+                ctx.restore();
+            }
+
+            // Always show current reading in a prominent way
+            ctx.save();
+            ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            ctx.fillRect(10, 10, 300, 60);
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+            ctx.strokeRect(10, 10, 300, 60);
+
+            ctx.fillStyle = "white";
+            ctx.font = "bold 16px Arial";
+            ctx.fillText("Reading: " + formatValue(getCorrectedReading()), 20, 35);
+            ctx.font = "12px Arial";
+            ctx.fillText("MSR: " + getMainScaleReading() + " | CSR: " + getCircularScaleReading(), 20, 55);
+            ctx.restore();
+
             if (displayInfo) drawInfo();
             ctx.resetTransform();
             // ctx.drawImage(imgSimphy,5,5,100,30);
@@ -770,6 +1058,18 @@
             //let rect = canvas.getBoundingClientRect();
             return [event.clientX, event.clientY];
         }
+        var initialTouchAngle = 0;
+        var initialCSR = 0;
+        var thimbleCenterX = 0;
+        var thimbleCenterY = 0;
+        var lastAngle = 0;
+        var rotationVelocity = 0;
+        var lastRotationTime = 0;
+
+        // Slider control variables
+        var sliderValue = 500; // Center position
+        var isSliderActive = false;
+
         function mousePressed(me) {
             let m = getMousePos(me);
             //convert mouse pos in world coordinates taking translation and scale in account
@@ -778,9 +1078,24 @@
             console.log("mousepressed at " + x + "," + y)
             let shift = scaleOriginX + (msr + csr / circularScaleDivisions) *
                 msd_pixels;
-            if (x > shift + thimbleX2 && x < shift + thimbleX3 && y >
-                thimbleY3 && y < thimbleY3 + 2 * (scaleOriginY - thimbleY3)) {
+
+            // Enhanced thimble detection area for better touch interaction
+            thimbleCenterX = shift + thimbleX2 + (thimbleX3 - thimbleX2) / 2;
+            thimbleCenterY = scaleOriginY;
+            let thimbleRadius = (scaleOriginY - thimbleY3) + 20; // Extended radius for easier touch
+            let distanceFromCenter = Math.sqrt((x - thimbleCenterX) * (x - thimbleCenterX) +
+                (y - thimbleCenterY) * (y - thimbleCenterY));
+
+            if (distanceFromCenter < thimbleRadius &&
+                x > shift + thimbleX2 - 20 && x < shift + thimbleX3 + 20 &&
+                y > thimbleY3 - 20 && y < thimbleY3 + 2 * (scaleOriginY - thimbleY3) + 20) {
                 dragMode = 2;
+                // Store initial angle and CSR for rotational dragging
+                initialTouchAngle = Math.atan2(y - thimbleCenterY, x - thimbleCenterX);
+                lastAngle = initialTouchAngle;
+                initialCSR = csr;
+                rotationVelocity = 0;
+                lastRotationTime = Date.now();
             } else if (objectTobeMeasured.state > 0 && x > objectTobeMeasured
                 .x && x < objectTobeMeasured.x + objectTobeMeasured.w && y >
                 objectTobeMeasured.y && y < objectTobeMeasured.y +
@@ -807,8 +1122,29 @@
                     objectTobeMeasured.state = 2;
                 }
                 update();
+            } else if (dragMode == 2) {
+                // Add momentum/inertia effect for smooth rotation
+                if (Math.abs(rotationVelocity) > 0.1) {
+                    animateRotationMomentum();
+                }
             }
             dragMode = 0;
+            paint(); // Refresh to remove touch feedback
+        }
+
+        function animateRotationMomentum() {
+            if (Math.abs(rotationVelocity) < 0.05) return;
+
+            let divisions = Math.round(rotationVelocity * 2);
+            if (divisions != 0) {
+                rotateVernier(divisions);
+            }
+
+            rotationVelocity *= 0.9; // Damping
+
+            if (Math.abs(rotationVelocity) > 0.05) {
+                setTimeout(animateRotationMomentum, 50);
+            }
         }
         function mouseWheelMoved(me) {
             //console.log(e.wheelDelta);
@@ -832,19 +1168,73 @@
                 objectTobeMeasured.x += dx;
                 objectTobeMeasured.y += dy;
                 paint();
-            } else if (dragMode == 2) { //move vernier
-                if (msr >= mainScaleDivisions && dy > 0) {
-                    paint();
-                    return;
+            } else if (dragMode == 2) { //rotate thimble
+                let x = m[0] / scale - xOffset;
+                let y = m[1] / scale - yOffset;
+
+                // Calculate current angle from thimble center
+                let currentAngle = Math.atan2(y - thimbleCenterY, x - thimbleCenterX);
+                let angleDifference = currentAngle - lastAngle;
+
+                // Normalize angle difference to -π to π
+                while (angleDifference > Math.PI) angleDifference -= 2 * Math.PI;
+                while (angleDifference < -Math.PI) angleDifference += 2 * Math.PI;
+
+                // Calculate rotation velocity for momentum
+                let currentTime = Date.now();
+                if (currentTime - lastRotationTime > 0) {
+                    rotationVelocity = angleDifference / (currentTime - lastRotationTime) * 1000;
                 }
-                if (msr == 0 && csr == 0 && (dy < 0)) {
-                    paint();
-                    return;
+                lastRotationTime = currentTime;
+                lastAngle = currentAngle;
+
+                // Convert angle to divisions (more sensitive rotation)
+                let totalAngleDiff = currentAngle - initialTouchAngle;
+                while (totalAngleDiff > Math.PI) totalAngleDiff -= 2 * Math.PI;
+                while (totalAngleDiff < -Math.PI) totalAngleDiff += 2 * Math.PI;
+
+                let divisionChange = Math.round(totalAngleDiff * circularScaleDivisions / (2 * Math.PI) * 2);
+                let newCSR = initialCSR + divisionChange;
+
+                // Apply the rotation with bounds checking
+                let targetCSR = newCSR;
+                let targetMSR = msr;
+
+                // Handle overflow/underflow
+                while (targetCSR < 0) {
+                    targetCSR += circularScaleDivisions;
+                    targetMSR -= 1;
                 }
-                rotateVernier(Math.round(dy));
-            } else { //move object
+                while (targetCSR >= circularScaleDivisions) {
+                    targetCSR -= circularScaleDivisions;
+                    targetMSR += 1;
+                }
+
+                // Check bounds
+                if (targetMSR >= 0 && targetMSR <= mainScaleDivisions) {
+                    let oldCSR = csr;
+                    let oldMSR = msr;
+                    csr = targetCSR;
+                    msr = targetMSR;
+
+                    // Play tick sound for significant changes
+                    if (Math.abs(csr - oldCSR) > 1 || msr != oldMSR) {
+                        playTickSound();
+                    }
+
+                    update();
+                } else {
+                    // Reset to bounds
+                    if (targetMSR < 0) {
+                        msr = 0;
+                        csr = 0;
+                    } else if (targetMSR > mainScaleDivisions) {
+                        msr = mainScaleDivisions;
+                        csr = 0;
+                    }
+                    paint();
+                }
             }
-            //update();
             me.preventDefault();
         }
         function onKeyEvent(e) {
@@ -863,6 +1253,138 @@
             }
             e.preventDefault();
         }
+
+        // Slider control functions
+        function setupSliderControls() {
+            const slider = document.getElementById('rotationSlider');
+            const rotateLeftBtn = document.getElementById('rotateLeft');
+            const rotateRightBtn = document.getElementById('rotateRight');
+            const mainReading = document.getElementById('mainReading');
+            const subReading = document.getElementById('subReading');
+
+            // Initialize slider position based on current readings
+            updateSliderFromReadings();
+
+            // Slider input event
+            slider.addEventListener('input', function (e) {
+                isSliderActive = true;
+                sliderValue = parseInt(e.target.value);
+                updateReadingsFromSlider();
+                updateReadingDisplay();
+            });
+
+            // Slider change event (when user releases)
+            slider.addEventListener('change', function (e) {
+                isSliderActive = false;
+                playTickSound();
+            });
+
+            // Left rotation button
+            rotateLeftBtn.addEventListener('click', function () {
+                rotateVernier(-1);
+                updateSliderFromReadings();
+                updateReadingDisplay();
+            });
+
+            // Right rotation button  
+            rotateRightBtn.addEventListener('click', function () {
+                rotateVernier(1);
+                updateSliderFromReadings();
+                updateReadingDisplay();
+            });
+
+            // Touch and hold for continuous rotation
+            let rotationInterval;
+
+            function startContinuousRotation(direction) {
+                rotationInterval = setInterval(() => {
+                    rotateVernier(direction);
+                    updateSliderFromReadings();
+                    updateReadingDisplay();
+                }, 100);
+            }
+
+            function stopContinuousRotation() {
+                if (rotationInterval) {
+                    clearInterval(rotationInterval);
+                    rotationInterval = null;
+                }
+            }
+
+            // Touch events for continuous rotation
+            rotateLeftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startContinuousRotation(-1);
+            });
+
+            rotateRightBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startContinuousRotation(1);
+            });
+
+            rotateLeftBtn.addEventListener('touchend', stopContinuousRotation);
+            rotateRightBtn.addEventListener('touchend', stopContinuousRotation);
+
+            // Mouse events for continuous rotation
+            rotateLeftBtn.addEventListener('mousedown', () => startContinuousRotation(-1));
+            rotateRightBtn.addEventListener('mousedown', () => startContinuousRotation(1));
+
+            document.addEventListener('mouseup', stopContinuousRotation);
+            document.addEventListener('touchend', stopContinuousRotation);
+
+            // Initial display update
+            updateReadingDisplay();
+        }
+
+        function updateSliderFromReadings() {
+            if (isSliderActive) return; // Don't update if user is actively using slider
+
+            const totalReading = msr + (csr / circularScaleDivisions);
+            const maxReading = mainScaleDivisions;
+            const sliderPosition = (totalReading / maxReading) * 1000;
+
+            document.getElementById('rotationSlider').value = Math.max(0, Math.min(1000, sliderPosition));
+        }
+
+        function updateReadingsFromSlider() {
+            const sliderPosition = sliderValue / 1000; // 0 to 1
+            const totalDivisions = sliderPosition * mainScaleDivisions;
+
+            const newMSR = Math.floor(totalDivisions);
+            const newCSR = Math.round((totalDivisions - newMSR) * circularScaleDivisions);
+
+            // Apply bounds checking
+            if (newMSR >= 0 && newMSR <= mainScaleDivisions) {
+                msr = newMSR;
+                csr = newCSR >= circularScaleDivisions ? 0 : newCSR;
+
+                if (csr >= circularScaleDivisions) {
+                    msr = Math.min(msr + 1, mainScaleDivisions);
+                    csr = 0;
+                }
+
+                update();
+            }
+        }
+
+        function updateReadingDisplay() {
+            const mainReading = document.getElementById('mainReading');
+            const subReading = document.getElementById('subReading');
+
+            if (mainReading && subReading) {
+                mainReading.textContent = formatValue(getCorrectedReading());
+                subReading.textContent = `MSR: ${getMainScaleReading()} | CSR: ${getCircularScaleReading()}`;
+            }
+        }
+
+        // Override the existing update function to also update the slider display
+        const originalUpdate = update;
+        update = function () {
+            originalUpdate();
+            updateSliderFromReadings();
+            updateReadingDisplay();
+        };
     </script>
 </body>
+
 </html>

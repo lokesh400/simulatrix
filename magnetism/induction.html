@@ -2,161 +2,150 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>3D Coil-Magnet Induction Simulation</title>
-<script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
+<title>Magnetic Induction</title>
 <style>
-body{margin:0;overflow:hidden;background:linear-gradient(135deg,#0f2027,#2c5364);}
-#controls{
-  position:absolute;top:10px;left:10px;width:280px;background:rgba(0,0,0,0.6);padding:15px;border-radius:12px;color:#fff;font-family:sans-serif;
-}
-#parameters{
-  position:absolute;top:10px;right:10px;width:280px;background:rgba(0,0,0,0.6);padding:15px;border-radius:12px;color:#fff;font-family:sans-serif;
-}
-button,input,select{margin-top:5px;width:100%;padding:5px;border-radius:5px;}
+  body { margin:0; overflow:hidden; background:#071017; font-family:Segoe UI,sans-serif; }
+  #controls {
+    position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.5);
+    padding:12px; border-radius:10px; backdrop-filter:blur(6px); color:#fff;
+  }
+  input[type=range] { width:200px; }
 </style>
 </head>
 <body>
-
 <div id="controls">
-  <button id="toggleAuto">Toggle Auto Motion</button>
-  <label><input type="checkbox" id="moveMagnet"> Move Magnet Instead of Coil</label><br>
-  <input type="range" id="speed" min="10" max="300" value="100">
-  <label>Oscillation Speed</label><br>
-  <input type="range" id="turns" min="3" max="20" value="8">
-  <label>Coil Turns</label>
+  <h3>Magnetic Induction</h3>
+  <label>Magnet Position: <span id="magPos">0</span></label><br>
+  <input type="range" id="magSlider" min="-3" max="3" step="0.01" value="0"><br><br>
+  <label><input type="checkbox" id="autoMove"> Auto Move Magnet</label>
 </div>
 
-<div id="parameters">
-  <div>Distance: <span id="distVal">0</span> px</div>
-  <div>Induced EMF: <span id="emfVal">0</span> mV</div>
-  <div>Velocity: <span id="velVal">0</span> px/s</div>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
-let coilX, coilY;
-let magnetX, magnetY;
-let coilWidth = 120, coilHeight = 60;
-let prevPos;
-let autoMotion = false;
-let t = 0;
-let speed = 100;
-let turns = 8;
-let emf = 0;
-let vel = 0;
-let smoothEMF = 0;
-let movingMagnet = false;
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight,0.1,100);
+let renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-function setup(){
-  createCanvas(window.innerWidth, window.innerHeight);
-  coilX = width/2 - 100;
-  coilY = height/2;
-  magnetX = width/2 + 100;
-  magnetY = height/2;
-  prevPos = coilX;
+// Lights
+const light = new THREE.PointLight(0xffffff,1.5); light.position.set(5,5,5); scene.add(light);
+const ambient = new THREE.AmbientLight(0x404040); scene.add(ambient);
 
-  document.getElementById('toggleAuto').onclick = ()=>{autoMotion=!autoMotion;}
-  document.getElementById('speed').oninput = e=>{speed=parseFloat(e.target.value);}
-  document.getElementById('turns').oninput = e=>{turns=parseInt(e.target.value);}
-  document.getElementById('moveMagnet').onchange = e=>{
-    movingMagnet = e.target.checked;
-    if(movingMagnet) prevPos = magnetX; else prevPos = coilX;
-  }
+// Coil (copper)
+function createCoil(radius=0.7, turns=10, length=2){
+  const curve = new THREE.Curve();
+  curve.getPoint = t => {
+    const angle = t * Math.PI*2*turns;
+    const x = radius*Math.cos(angle);
+    const y = radius*Math.sin(angle);
+    const z = length*(t-0.5);
+    return new THREE.Vector3(x,y,z);
+  };
+  const geo = new THREE.TubeGeometry(curve, 400, 0.05, 12,false);
+  const mat = new THREE.MeshStandardMaterial({color:0xff9900, metalness:0.7, roughness:0.2});
+  return new THREE.Mesh(geo, mat);
+}
+const coil = createCoil();
+scene.add(coil);
+
+// Bar magnet
+const magnet = new THREE.Mesh(
+  new THREE.BoxGeometry(0.4,0.4,1.2),
+  new THREE.MeshStandardMaterial({color:0xff5555})
+);
+scene.add(magnet);
+const magnetS = new THREE.Mesh(
+  new THREE.BoxGeometry(0.2,0.4,0.6),
+  new THREE.MeshStandardMaterial({color:0x2266ff})
+);
+magnetS.position.z = -0.3; magnet.add(magnetS);
+
+// Magnetic field lines along magnet axis
+const fieldGroup = new THREE.Group();
+for(let i=0;i<12;i++){
+  const curve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(i*0.05-0.3,0,-1),
+    new THREE.Vector3(0,0,i*0.1-0.5),
+    new THREE.Vector3(i*0.05-0.3,0,1)
+  ]);
+  const geo = new THREE.TubeGeometry(curve,20,0.01,8,false);
+  const mat = new THREE.MeshBasicMaterial({color:0x44ccff});
+  const line = new THREE.Mesh(geo,mat);
+  fieldGroup.add(line);
+}
+scene.add(fieldGroup);
+
+// Arrows showing induced current in coil (opposing flux)
+const arrows = [];
+for(let i=-4;i<=4;i++){
+  const arrow = new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3(0.5,0,i*0.3),0.5,0xffff00);
+  scene.add(arrow);
+  arrows.push(arrow);
 }
 
-function draw(){
-  background(30,30,50);
+// Bulb connected to coil
+const bulb = new THREE.Mesh(
+  new THREE.SphereGeometry(0.2,16,16),
+  new THREE.MeshStandardMaterial({color:0xffffee, emissive:0x000000})
+);
+bulb.position.set(1.5,0,0);
+scene.add(bulb);
 
-  // Coil motion
-  if(autoMotion){
-    t += deltaTime*0.001;
-    let moveAmount = sin(t*speed*0.01)*200;
-    if(movingMagnet){
-      magnetX = width/2 + moveAmount;
-    }else{
-      coilX = width/2 + moveAmount;
-    }
-  }
+// Camera
+camera.position.set(4,3,2); camera.lookAt(0,0,0);
 
-  // Velocity & EMF
-  let currentPos = movingMagnet ? magnetX : coilX;
-  vel = (currentPos - prevPos)/(deltaTime*0.001);
-  prevPos = currentPos;
-  emf = -vel*0.05;
-  smoothEMF = smoothEMF*0.9 + emf*0.1;
+// Controls
+const slider = document.getElementById("magSlider");
+let autoMove=false;
+document.getElementById("autoMove").addEventListener("change", e=>autoMove=e.target.checked);
 
-  // Draw magnet with 3D shading
-  drawMagnet(magnetX, magnetY);
+// Animation vars
+let time=0;
+let lastFlux=0;
 
-  // Draw sleek 3D helical coil
-  drawHelicalCoil(coilX, coilY, coilWidth, coilHeight, turns);
+function animate(){
+  requestAnimationFrame(animate);
+  time+=0.03;
 
-  // Current arrows along coil
-  drawCurrentArrows(coilX, coilY, turns, smoothEMF);
+  // Magnet movement
+  if(autoMove){
+    magnet.position.z = Math.sin(time)*2;
+    slider.value = magnet.position.z;
+  } else magnet.position.z = parseFloat(slider.value);
+  document.getElementById("magPos").innerText = magnet.position.z.toFixed(2);
 
-  // Bulb with realistic wires
-  drawBulb(coilX, coilY, smoothEMF);
+  // Approx magnetic flux through coil (primary along z)
+  const dist = magnet.position.z; // flux proportional to distance along axis
+  const flux = 1/(dist*dist+0.1);
+  const inducedEMF = -(flux-lastFlux)/0.03; // Lenz: oppose change
+  lastFlux = flux;
 
-  // Mouse drag
-  if(mouseIsPressed && mouseY>coilY-50 && mouseY<coilY+50){
-    if(movingMagnet){
-      magnetX = mouseX;
-    }else{
-      coilX = mouseX;
-    }
-  }
+  // Bulb glow proportional to induced EMF
+  const glow = Math.min(1, Math.abs(inducedEMF));
+  bulb.material.emissiveIntensity = glow;
+  bulb.material.emissive.setHex(0xffff00);
 
-  // Update parameters
-  document.getElementById('distVal').innerText = abs(coilX - magnetX).toFixed(1);
-  document.getElementById('emfVal').innerText = smoothEMF.toFixed(2);
-  document.getElementById('velVal').innerText = vel.toFixed(1);
+  // Arrows direction in coil (opposing flux)
+  const dir = Math.sign(inducedEMF)||1;
+  arrows.forEach(a=>{
+    a.setDirection(new THREE.Vector3(0,dir,0));
+  });
+
+  // Field lines move slightly with magnet
+  fieldGroup.position.z = magnet.position.z;
+
+  renderer.render(scene,camera);
 }
 
-function drawHelicalCoil(x, y, w, h, turns){
-  strokeWeight(3);
-  for(let i=0;i<turns;i++){
-    let hue = map(i,0,turns-1,100,200);
-    stroke(hue,255,200);
-    noFill();
-    beginShape();
-    for(let a=0;a<TWO_PI;a+=0.1){
-      let px = x + cos(a)*(w+i*6)/2;
-      let py = y + sin(a)*(h+i*4)/2 + i*6;
-      vertex(px, py);
-    }
-    endShape();
-  }
-}
+animate();
 
-function drawCurrentArrows(x, y, turns, emf){
-  stroke(255,255,0); fill(255,255,0);
-  let dir = emf>0 ? 1 : -1;
-  for(let i=0;i<turns;i+=2){
-    let angle = map(i,0,turns-1,-PI/6,PI/6);
-    let len = map(abs(emf),0,5,10,30,true);
-    line(x, y + i*5, x + dir*len*cos(angle), y + i*5 + dir*len*sin(angle));
-    triangle(x + dir*len*cos(angle), y + i*5 + dir*len*sin(angle),
-             x + dir*len*cos(angle)-3, y + i*5 + dir*len*sin(angle)-3,
-             x + dir*len*cos(angle)-3, y + i*5 + dir*len*sin(angle)+3);
-  }
-}
-
-function drawMagnet(x,y){
-  stroke(255); strokeWeight(2);
-  fill(255,0,0);
-  rect(x-20, y-30, 40, 60,8);
-  fill(255); textAlign(CENTER,CENTER); text("N", x, y-10); text("S", x, y+10);
-}
-
-function drawBulb(coilX, coilY, emf){
-  let brightness = map(abs(emf),0,5,50,255,true);
-  let bulbX = coilX + 200;
-  let bulbY = coilY;
-  fill(255,255,0,brightness); stroke(255); strokeWeight(2);
-  ellipse(bulbX, bulbY, 40,40);
-  stroke(255); strokeWeight(2);
-  line(coilX+20, coilY, bulbX-20, bulbY);
-  line(coilX-20, coilY, bulbX-20, bulbY);
-}
+// Resize
+window.addEventListener("resize", ()=>{
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
 </script>
 </body>
 </html>

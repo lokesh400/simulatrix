@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Isobaric Heating of Gas</title>
+<style>
+  body {
+    margin: 0;
+    background-color: #000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    color: white;
+    font-family: "Segoe UI", sans-serif;
+  }
+
+  h2 {
+    margin: 10px;
+  }
+
+  canvas {
+    background: radial-gradient(circle at center, #111, #000);
+    border: 2px solid #555;
+    border-radius: 10px;
+  }
+
+  #readings {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid #666;
+    border-radius: 8px;
+    padding: 10px 15px;
+    line-height: 1.5;
+  }
+
+  #heatBtn {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    background: linear-gradient(45deg, #ff6a00, #ff2d00);
+    border: none;
+    color: white;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 0 10px #ff5e00;
+    transition: transform 0.1s;
+  }
+
+  #heatBtn:active {
+    transform: scale(0.95);
+  }
+
+  .flame {
+    position: absolute;
+    bottom: 80px;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, #ff6600, #ff0000, transparent);
+    border-radius: 50%;
+    animation: flicker 0.2s infinite alternate;
+    opacity: 0;
+  }
+
+  @keyframes flicker {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.3) translateY(-10px); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<h2>🔥 Isobaric Expansion — Constant Pressure Heating</h2>
+
+<div id="readings">
+  <b>Pressure (P):</b> 1.00 atm<br>
+  <b>Volume (V):</b> <span id="volume">1.00</span> L<br>
+  <b>Temperature (T):</b> <span id="temp">300</span> K
+</div>
+
+<canvas id="sim" width="400" height="500"></canvas>
+<div class="flame" id="flame"></div>
+<button id="heatBtn">Add Heat</button>
+
+<script>
+const canvas = document.getElementById("sim");
+const ctx = canvas.getContext("2d");
+const flame = document.getElementById("flame");
+const heatBtn = document.getElementById("heatBtn");
+const tempDisplay = document.getElementById("temp");
+const volDisplay = document.getElementById("volume");
+
+let pistonY = 180;
+let gasParticles = [];
+let heating = false;
+let temperature = 1;
+let expansionSpeed = 0;
+
+// create gas particles
+for (let i = 0; i < 80; i++) {
+  gasParticles.push({
+    x: Math.random() * 300 + 50,
+    y: Math.random() * (380 - pistonY - 10) + pistonY + 10,
+    vx: (Math.random() - 0.5) * 2,
+    vy: (Math.random() - 0.5) * 2,
+  });
+}
+
+function drawContainer() {
+  // cylinder walls
+  ctx.fillStyle = "#333";
+  ctx.fillRect(50, pistonY, 300, 400 - pistonY);
+  ctx.strokeStyle = "#777";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(50, pistonY, 300, 400 - pistonY);
+
+  // base
+  ctx.fillStyle = "#555";
+  ctx.fillRect(40, 400, 320, 20);
+
+  // piston
+  ctx.fillStyle = "silver";
+  ctx.fillRect(50, pistonY - 20, 300, 20);
+  ctx.strokeStyle = "#ccc";
+  ctx.strokeRect(50, pistonY - 20, 300, 20);
+
+  // piston rod
+  ctx.fillStyle = "#aaa";
+  ctx.fillRect(190, 0, 20, pistonY - 20);
+}
+
+function drawParticles() {
+  for (let p of gasParticles) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = `hsl(${Math.min(temperature * 40, 60)}, 100%, ${40 + temperature * 20}%)`;
+    ctx.fill();
+
+    p.x += p.vx;
+    p.y += p.vy;
+
+    if (p.x < 54 || p.x > 346) p.vx *= -1;
+    if (p.y < pistonY + 2 || p.y > 396) p.vy *= -1;
+  }
+}
+
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (heating) {
+    temperature += 0.01;
+    expansionSpeed = 0.5;
+    flame.style.opacity = "1";
+  } else {
+    flame.style.opacity = "0";
+    expansionSpeed *= 0.9;
+  }
+
+  pistonY -= expansionSpeed * 0.5;
+  if (pistonY < 80) pistonY = 80;
+  if (pistonY > 180) pistonY = 180;
+
+  // Update particle speed based on temperature
+  for (let p of gasParticles) {
+    if (p.y < pistonY + 5) p.y = pistonY + 5;
+    if (p.y > 395) p.y = 395;
+    p.vx += (Math.random() - 0.5) * temperature * 0.02;
+    p.vy += (Math.random() - 0.5) * temperature * 0.02;
+  }
+
+  drawContainer();
+  drawParticles();
+
+  // readings
+  const volume = (400 - pistonY) / (400 - 180) + 1; // arbitrary unit
+  const tempK = Math.round(300 + (temperature - 1) * 200);
+  volDisplay.textContent = volume.toFixed(2);
+  tempDisplay.textContent = tempK;
+
+  requestAnimationFrame(update);
+}
+
+heatBtn.addEventListener("mousedown", () => heating = true);
+heatBtn.addEventListener("mouseup", () => heating = false);
+
+update();
+</script>
+</body>
+</html>

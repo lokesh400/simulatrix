@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heat Supply to Ideal Gas at Constant Volume</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .panel h2 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        label {
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .value-display {
+            font-weight: normal;
+            opacity: 0.9;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fdbb2d;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #fdbb2d;
+            color: #1a2a6c;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            background: #ffcc44;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .visualization {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .animation-container {
+            position: relative;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        #gas-container {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .speed-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            .charts {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .data-panel {
+            grid-column: 1 / -1;
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .data-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .data-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 10px 0;
+            color: #fdbb2d;
+        }
+        
+        .data-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .formula {
+            font-style: italic;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        .heat-indicator {
+            height: 8px;
+            background: #1a2a6c;
+            margin-top: 5px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .heat-level {
+            height: 100%;
+            background: linear-gradient(90deg, #fdbb2d, #b21f1f);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Heat Supply to Ideal Gas at Constant Volume</h1>
+            <p class="subtitle">Watch molecules move faster as heat increases temperature and pressure</p>
+        </header>
+        
+        <div class="content">
+            <div class="panel controls">
+                <h2>Controls</h2>
+                
+                <div class="control-group">
+                    <label>
+                        Heat Added (J)
+                        <span class="value-display" id="heat-value">0</span>
+                    </label>
+                    <input type="range" id="heat-slider" min="0" max="1000" value="0" step="10">
+                    <div class="heat-indicator">
+                        <div class="heat-level" id="heat-level"></div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>
+                        Gas Type
+                        <span class="value-display" id="gas-type">Monatomic</span>
+                    </label>
+                    <input type="range" id="gas-slider" min="0" max="1" value="0" step="1">
+                </div>
+                
+                <div class="control-group">
+                    <label>
+                        Number of Molecules
+                        <span class="value-display" id="molecule-count">40</span>
+                    </label>
+                    <input type="range" id="molecule-slider" min="10" max="80" value="40" step="5">
+                </div>
+                
+                <div class="buttons">
+                    <button id="animate-btn">Auto Heat</button>
+                    <button id="reset-btn">Reset</button>
+                </div>
+                
+                <div class="formula">
+                    <p>At constant volume: Q = ΔU = n·Cv·ΔT</p>
+                    <p>Molecular speed increases with √T</p>
+                    <p>Pressure increases linearly with temperature</p>
+                </div>
+            </div>
+            
+            <div class="panel visualization">
+                <h2>Molecular Motion</h2>
+                <div class="animation-container">
+                    <canvas id="gas-container"></canvas>
+                    <div class="speed-indicator" id="speed-indicator">
+                        Speed: 1.0x
+                    </div>
+                </div>
+                
+                <div class="charts">
+                    <div class="chart-container">
+                        <canvas id="temp-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="pressure-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel data-panel">
+                <h2>Gas Properties</h2>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <div class="data-label">Temperature</div>
+                        <div class="data-value" id="temp-display">300 K</div>
+                        <div class="data-label">+0 K from initial</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Pressure</div>
+                        <div class="data-value" id="pressure-display">249.4 kPa</div>
+                        <div class="data-label">+0 kPa from initial</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Internal Energy</div>
+                        <div class="data-value" id="energy-display">3.74 kJ</div>
+                        <div class="data-label">+0 kJ from initial</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Volume</div>
+                        <div class="data-value" id="volume-display">0.01 m³</div>
+                        <div class="data-label">Constant</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Simulation of Ideal Gas Behavior at Constant Volume | Physics Educational Tool</p>
+        </footer>
+    </div>
+
+    <script>
+        // Constants
+        const R = 8.314; // Universal gas constant (J/mol·K)
+        const Cv_monatomic = 3/2 * R; // Molar heat capacity at constant volume for monatomic gas
+        const Cv_diatomic = 5/2 * R; // Molar heat capacity at constant volume for diatomic gas
+        
+        // Initial conditions
+        let n = 1.0; // moles of gas
+        let V = 0.01; // volume in m³
+        let T_initial = 300; // initial temperature in K
+        let T = T_initial;
+        let P_initial = n * R * T_initial / V;
+        let P = P_initial;
+        let gasType = 'monatomic';
+        let Cv = Cv_monatomic;
+        let U_initial = n * Cv * T_initial;
+        let U = U_initial;
+        let heatAdded = 0;
+        let moleculeCount = 40;
+        
+        // Animation control
+        let animationId = null;
+        let isAnimating = true;
+        let autoHeatInterval = null;
+        
+        // Get DOM elements
+        const heatSlider = document.getElementById('heat-slider');
+        const heatValue = document.getElementById('heat-value');
+        const heatLevel = document.getElementById('heat-level');
+        const gasSlider = document.getElementById('gas-slider');
+        const gasTypeDisplay = document.getElementById('gas-type');
+        const moleculeSlider = document.getElementById('molecule-slider');
+        const moleculeCountDisplay = document.getElementById('molecule-count');
+        const animateBtn = document.getElementById('animate-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const speedIndicator = document.getElementById('speed-indicator');
+        
+        const tempDisplay = document.getElementById('temp-display');
+        const pressureDisplay = document.getElementById('pressure-display');
+        const energyDisplay = document.getElementById('energy-display');
+        const volumeDisplay = document.getElementById('volume-display');
+        
+        // Initialize charts
+        const tempCtx = document.getElementById('temp-chart').getContext('2d');
+        const pressureCtx = document.getElementById('pressure-chart').getContext('2d');
+        
+        const tempChart = new Chart(tempCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Temperature (K)',
+                    data: [],
+                    borderColor: '#fdbb2d',
+                    backgroundColor: 'rgba(253, 187, 45, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Heat Added (J)',
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'white'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Temperature (K)',
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'white'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white'
+                        }
+                    }
+                }
+            }
+        });
+        
+        const pressureChart = new Chart(pressureCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Pressure (kPa)',
+                    data: [],
+                    borderColor: '#1a2a6c',
+                    backgroundColor: 'rgba(26, 42, 108, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Heat Added (J)',
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'white'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Pressure (kPa)',
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'white'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Initialize gas container
+        const gasCanvas = document.getElementById('gas-container');
+        const ctx = gasCanvas.getContext('2d');
+        
+        // Set canvas size
+        function resizeCanvas() {
+            gasCanvas.width = gasCanvas.offsetWidth;
+            gasCanvas.height = gasCanvas.offsetHeight;
+            initMolecules();
+        }
+        
+        // Create molecules
+        let molecules = [];
+        
+        function initMolecules() {
+            molecules = [];
+            const baseSpeed = 2;
+            const baseRadius = gasType === 'monatomic' ? 6 : 8;
+            
+            for (let i = 0; i < moleculeCount; i++) {
+                molecules.push({
+                    x: Math.random() * (gasCanvas.width - 80) + 40,
+                    y: Math.random() * (gasCanvas.height - 80) + 40,
+                    vx: (Math.random() - 0.5) * baseSpeed,
+                    vy: (Math.random() - 0.5) * baseSpeed,
+                    radius: baseRadius,
+                    color: gasType === 'monatomic' ? '#fdbb2d' : '#1a2a6c'
+                });
+            }
+        }
+        
+        // Update gas properties based on heat added
+        function updateGasProperties() {
+            // At constant volume, Q = ΔU
+            const deltaU = heatAdded;
+            U = U_initial + deltaU;
+            T = U / (n * Cv);
+            P = n * R * T / V;
+            
+            // Update displays
+            heatValue.textContent = heatAdded;
+            heatLevel.style.width = `${(heatAdded / 1000) * 100}%`;
+            tempDisplay.textContent = `${T.toFixed(1)} K`;
+            pressureDisplay.textContent = `${(P / 1000).toFixed(1)} kPa`;
+            energyDisplay.textContent = `${(U / 1000).toFixed(2)} kJ`;
+            
+            // Update data labels
+            document.querySelectorAll('.data-item .data-label')[0].textContent = 
+                `+${(T - T_initial).toFixed(1)} K from initial`;
+            document.querySelectorAll('.data-item .data-label')[1].textContent = 
+                `+${((P - P_initial) / 1000).toFixed(1)} kPa from initial`;
+            document.querySelectorAll('.data-item .data-label')[2].textContent = 
+                `+${(deltaU / 1000).toFixed(2)} kJ from initial`;
+            
+            // Update speed indicator
+            const speedMultiplier = Math.sqrt(T / T_initial);
+            speedIndicator.textContent = `Speed: ${speedMultiplier.toFixed(1)}x`;
+            speedIndicator.style.background = speedMultiplier > 1.5 ? 
+                `rgba(255, 50, 50, 0.8)` : `rgba(0, 0, 0, 0.7)`;
+            
+            // Update charts
+            const heatPoints = Array.from({length: 11}, (_, i) => i * 100);
+            const tempPoints = heatPoints.map(q => T_initial + q / (n * Cv));
+            const pressurePoints = heatPoints.map(q => (P_initial + (R / (Cv * V)) * q) / 1000);
+            
+            tempChart.data.labels = heatPoints;
+            tempChart.data.datasets[0].data = tempPoints;
+            tempChart.update('none');
+            
+            pressureChart.data.labels = heatPoints;
+            pressureChart.data.datasets[0].data = pressurePoints;
+            pressureChart.update('none');
+            
+            // Update molecule speeds based on temperature
+            const speedFactor = Math.sqrt(T / T_initial);
+            molecules.forEach(molecule => {
+                // Scale velocity while maintaining direction
+                const currentSpeed = Math.sqrt(molecule.vx * molecule.vx + molecule.vy * molecule.vy);
+                if (currentSpeed > 0) {
+                    const directionX = molecule.vx / currentSpeed;
+                    const directionY = molecule.vy / currentSpeed;
+                    const newSpeed = 2 * speedFactor; // Base speed multiplied by factor
+                    molecule.vx = directionX * newSpeed;
+                    molecule.vy = directionY * newSpeed;
+                }
+                
+                // Change color based on speed
+                const speed = Math.sqrt(molecule.vx * molecule.vx + molecule.vy * molecule.vy);
+                if (speed > 3) {
+                    molecule.color = '#ff4444'; // Red for fast molecules
+                } else if (speed > 1.5) {
+                    molecule.color = '#ffaa00'; // Orange for medium speed
+                } else {
+                    molecule.color = gasType === 'monatomic' ? '#fdbb2d' : '#1a2a6c';
+                }
+            });
+        }
+        
+        // Draw gas container and molecules
+        function drawGasContainer() {
+            // Clear canvas
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(0, 0, gasCanvas.width, gasCanvas.height);
+            
+            // Draw container
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(20, 20, gasCanvas.width - 40, gasCanvas.height - 40);
+            
+            // Draw molecules
+            molecules.forEach(molecule => {
+                ctx.beginPath();
+                ctx.arc(molecule.x, molecule.y, molecule.radius, 0, Math.PI * 2);
+                ctx.fillStyle = molecule.color;
+                ctx.fill();
+                
+                // Add white border for visibility
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Draw bond for diatomic molecules
+                if (gasType === 'diatomic') {
+                    ctx.beginPath();
+                    ctx.moveTo(molecule.x - molecule.radius * 0.7, molecule.y);
+                    ctx.lineTo(molecule.x + molecule.radius * 0.7, molecule.y);
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            });
+        }
+        
+        // Update molecule positions
+        function updateMolecules() {
+            molecules.forEach(molecule => {
+                // Update position
+                molecule.x += molecule.vx;
+                molecule.y += molecule.vy;
+                
+                // Boundary collision - bounce off walls
+                if (molecule.x - molecule.radius < 20) {
+                    molecule.vx = Math.abs(molecule.vx);
+                    molecule.x = 20 + molecule.radius;
+                } else if (molecule.x + molecule.radius > gasCanvas.width - 20) {
+                    molecule.vx = -Math.abs(molecule.vx);
+                    molecule.x = gasCanvas.width - 20 - molecule.radius;
+                }
+                
+                if (molecule.y - molecule.radius < 20) {
+                    molecule.vy = Math.abs(molecule.vy);
+                    molecule.y = 20 + molecule.radius;
+                } else if (molecule.y + molecule.radius > gasCanvas.height - 20) {
+                    molecule.vy = -Math.abs(molecule.vy);
+                    molecule.y = gasCanvas.height - 20 - molecule.radius;
+                }
+            });
+        }
+        
+        // Animation loop
+        function animate() {
+            updateMolecules();
+            drawGasContainer();
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // Auto heat function
+        function startAutoHeat() {
+            if (autoHeatInterval) clearInterval(autoHeatInterval);
+            
+            autoHeatInterval = setInterval(() => {
+                if (heatAdded < 1000) {
+                    heatAdded += 10;
+                    heatSlider.value = heatAdded;
+                    updateGasProperties();
+                } else {
+                    stopAutoHeat();
+                }
+            }, 100);
+        }
+        
+        function stopAutoHeat() {
+            if (autoHeatInterval) {
+                clearInterval(autoHeatInterval);
+                autoHeatInterval = null;
+                animateBtn.textContent = 'Auto Heat';
+            }
+        }
+        
+        // Initialize and start
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        animate();
+        
+        // Event listeners
+        heatSlider.addEventListener('input', function() {
+            heatAdded = parseInt(this.value);
+            updateGasProperties();
+        });
+        
+        gasSlider.addEventListener('input', function() {
+            gasType = this.value == 0 ? 'monatomic' : 'diatomic';
+            gasTypeDisplay.textContent = gasType === 'monatomic' ? 'Monatomic' : 'Diatomic';
+            Cv = gasType === 'monatomic' ? Cv_monatomic : Cv_diatomic;
+            U_initial = n * Cv * T_initial;
+            initMolecules();
+            updateGasProperties();
+        });
+        
+        moleculeSlider.addEventListener('input', function() {
+            moleculeCount = parseInt(this.value);
+            moleculeCountDisplay.textContent = moleculeCount;
+            initMolecules();
+        });
+        
+        animateBtn.addEventListener('click', function() {
+            if (autoHeatInterval) {
+                stopAutoHeat();
+            } else {
+                startAutoHeat();
+                animateBtn.textContent = 'Stop Heat';
+            }
+        });
+        
+        resetBtn.addEventListener('click', function() {
+            stopAutoHeat();
+            heatAdded = 0;
+            heatSlider.value = 0;
+            T_initial = 300;
+            U_initial = n * Cv * T_initial;
+            P_initial = n * R * T_initial / V;
+            animateBtn.textContent = 'Auto Heat';
+            
+            initMolecules();
+            updateGasProperties();
+        });
+        
+        // Initial update
+        updateGasProperties();
+    </script>
+</body>
+</html>

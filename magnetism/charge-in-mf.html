@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Charged Particle in Magnetic Field</title>
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(circle at center, #0a0a0f, #000);
+      color: #fff;
+      font-family: "Segoe UI", sans-serif;
+      overflow: hidden;
+      display: flex;
+      height: 100vh;
+    }
+    #sim-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    canvas {
+      background-color: #0d1117;
+      border: 2px solid #333;
+      border-radius: 10px;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    }
+    #controls {
+      width: 260px;
+      background: rgba(20, 20, 30, 0.9);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      border-left: 2px solid #222;
+      box-shadow: -4px 0 10px rgba(0, 0, 0, 0.5);
+    }
+    h2 {
+      text-align: center;
+      color: cyan;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    button {
+      background: linear-gradient(90deg, #0078ff, #00ffff);
+      border: none;
+      color: #000;
+      font-weight: bold;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 6px 0;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #00ffff, #0078ff);
+      box-shadow: 0 0 10px #00ffff;
+    }
+    input[type="range"] {
+      width: 100%;
+      margin: 6px 0 14px;
+    }
+    label {
+      font-size: 14px;
+      color: #aaa;
+    }
+    .value {
+      color: #0ff;
+      float: right;
+    }
+  </style>
+</head>
+<body>
+  <div id="sim-container">
+    <canvas id="canvas" width="800" height="600"></canvas>
+  </div>
+
+  <div id="controls">
+    <h2>Magnetic Field Simulator</h2>
+    <button id="playBtn">▶ Play</button>
+    <button id="pauseBtn">⏸ Pause</button>
+    <button id="resetBtn">🔄 Reset</button>
+
+    <label>Charge (C) <span class="value" id="qVal">1</span></label>
+    <input type="range" id="charge" min="-3" max="3" step="0.1" value="1" />
+
+    <label>Magnetic Field (T) <span class="value" id="bVal">1</span></label>
+    <input type="range" id="field" min="-3" max="3" step="0.1" value="1" />
+
+    <label>Speed (m/s) <span class="value" id="vVal">1</span></label>
+    <input type="range" id="speed" min="0" max="3" step="0.1" value="1" />
+
+    <button id="reverseFieldBtn">🔁 Reverse Field</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    // Physics quantities
+    let charge = 1;
+    let B = 1;
+    let vMag = 1;
+    let running = false;
+
+    // Particle state
+    let x = 400;
+    let y = 300;
+    let vx = 0;
+    let vy = -vMag;
+    let dt = 0.02;
+
+    let trail = [];
+
+    // UI elements
+    const qSlider = document.getElementById("charge");
+    const bSlider = document.getElementById("field");
+    const vSlider = document.getElementById("speed");
+    const qVal = document.getElementById("qVal");
+    const bVal = document.getElementById("bVal");
+    const vVal = document.getElementById("vVal");
+
+    function drawField() {
+      ctx.strokeStyle = "#0ff3";
+      ctx.lineWidth = 1.5;
+      for (let i = 80; i < 800; i += 80) {
+        for (let j = 80; j < 600; j += 80) {
+          ctx.beginPath();
+          if (B > 0) {
+            ctx.moveTo(i - 10, j - 10);
+            ctx.lineTo(i + 10, j + 10);
+            ctx.moveTo(i + 10, j - 10);
+            ctx.lineTo(i - 10, j + 10);
+          } else {
+            ctx.arc(i, j, 8, 0, 2 * Math.PI);
+          }
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawParticle() {
+      ctx.beginPath();
+      ctx.arc(x, y, 10, 0, 2 * Math.PI);
+      ctx.fillStyle = charge > 0 ? "#ff4040" : "#4090ff";
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    function drawTrail() {
+      ctx.beginPath();
+      ctx.moveTo(trail[0].x, trail[0].y);
+      for (let i = 1; i < trail.length; i++) {
+        ctx.lineTo(trail[i].x, trail[i].y);
+      }
+      ctx.strokeStyle = "#00ffffaa";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function updatePhysics() {
+      const ax = charge * vy * B;
+      const ay = -charge * vx * B;
+
+      vx += ax * dt;
+      vy += ay * dt;
+
+      x += vx * 50 * dt;
+      y += vy * 50 * dt;
+
+      trail.push({ x, y });
+      if (trail.length > 500) trail.shift();
+    }
+
+    function animate() {
+      if (!running) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawField();
+      updatePhysics();
+      if (trail.length > 1) drawTrail();
+      drawParticle();
+      requestAnimationFrame(animate);
+    }
+
+    // UI Events
+    document.getElementById("playBtn").onclick = () => {
+      if (!running) {
+        running = true;
+        animate();
+      }
+    };
+    document.getElementById("pauseBtn").onclick = () => (running = false);
+    document.getElementById("resetBtn").onclick = () => {
+      running = false;
+      x = 400;
+      y = 300;
+      vx = 0;
+      vy = -vMag;
+      trail = [];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawField();
+      drawParticle();
+    };
+    document.getElementById("reverseFieldBtn").onclick = () => {
+      B = -B;
+      bSlider.value = B;
+      bVal.textContent = B.toFixed(1);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawField();
+      drawParticle();
+    };
+
+    qSlider.oninput = (e) => {
+      charge = parseFloat(e.target.value);
+      qVal.textContent = charge.toFixed(1);
+    };
+    bSlider.oninput = (e) => {
+      B = parseFloat(e.target.value);
+      bVal.textContent = B.toFixed(1);
+    };
+    vSlider.oninput = (e) => {
+      vMag = parseFloat(e.target.value);
+      vVal.textContent = vMag.toFixed(1);
+      vx = 0;
+      vy = -vMag;
+    };
+
+    // Initial draw
+    drawField();
+    drawParticle();
+  </script>
+</body>
+</html>

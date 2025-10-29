@@ -1,151 +1,841 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Lenz's Law: Magnet & Coil</title>
-<style>
-  body { margin:0; overflow:hidden; background:#071017; font-family:Segoe UI,sans-serif; }
-  #controls {
-    position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.5);
-    padding:12px; border-radius:10px; backdrop-filter:blur(6px); color:#fff;
-  }
-  input[type=range] { width:200px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lenz's Law Demonstration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: black;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1100px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .panel h2 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .simulation-container {
+            height: 600px;
+            position: relative;
+            background: rgba(0, 0, 0);
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #simulation-canvas {
+            display: block;
+            background: rgba(26, 35, 126, 0.1);
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        label {
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .value-display {
+            font-weight: normal;
+            opacity: 0.9;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffab00;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #ffab00;
+            color: #1a237e;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            background: #ffc400;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 10px 0;
+            color: #ffab00;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .explanation {
+            margin-top: 20px;
+        }
+        
+        .explanation-content {
+            line-height: 1.6;
+        }
+        
+        .explanation-content p {
+            margin-bottom: 15px;
+        }
+        
+        .law-statement {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 171, 0, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #ffab00;
+        }
+        
+        .law-statement h3 {
+            margin-bottom: 10px;
+            color: #ffab00;
+        }
+        
+        .comparison {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .comparison-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .comparison-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #ffab00;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        .experiment-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            max-width: 300px;
+        }
+        
+        .current-indicator {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            max-width: 250px;
+        }
+
+        .visualization {
+            margin-top: 20px;
+            padding: 15px;
+            /* background: rgba(255, 255, 255, 0.1); */
+            border-radius: 10px;
+        }
+
+        .field-display {
+            height: 120px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .field-line {
+            position: absolute;
+            height: 2px;
+            background: rgba(0, 150, 255, 0.6);
+            transform-origin: left center;
+        }
+    </style>
 </head>
 <body>
-<div id="controls">
-  <h3>Lenz's Law Demo</h3>
-  <label>Magnet Position: <span id="magPos">0</span></label><br>
-  <input type="range" id="magSlider" min="-3" max="3" step="0.01" value="0"><br><br>
-  <label><input type="checkbox" id="autoMove"> Auto Move Magnet</label>
-</div>
+    <div class="container">
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="panel controls">
+                    <h2>Controls</h2>
+                    
+                    <div class="control-group">
+                        <label>
+                            Magnet Strength
+                            <span class="value-display" id="strength-value">Medium</span>
+                        </label>
+                        <input type="range" id="strength-slider" min="1" max="3" value="2" step="1">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>
+                            Tube Material
+                            <span class="value-display" id="material-value">Copper</span>
+                        </label>
+                        <input type="range" id="material-slider" min="1" max="3" value="2" step="1">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>
+                            Tube Length
+                            <span class="value-display" id="length-value">Medium</span>
+                        </label>
+                        <input type="range" id="length-slider" min="1" max="3" value="2" step="1">
+                    </div>
+                    
+                    <div class="buttons">
+                        <button id="drop-btn">Drop Magnet</button>
+                        <button id="reset-btn">Reset</button>
+                    </div>
+                    
+                    <div class="comparison">
+                        <div class="comparison-item">
+                            <div>Free Fall Time</div>
+                            <div class="comparison-value">~0.45s</div>
+                        </div>
+                        <div class="comparison-item">
+                            <div>Through Tube</div>
+                            <div class="comparison-value" id="fall-time">0.00s</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel stats">
+                    <h2>Live Data</h2>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Magnet Position</div>
+                            <div class="stat-value" id="position-value">Top</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Fall Speed</div>
+                            <div class="stat-value" id="speed-value">0 m/s</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Drag Force</div>
+                            <div class="stat-value" id="drag-value">None</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Time in Tube</div>
+                            <div class="stat-value" id="tube-time">0.00s</div>
+                        </div>
+                    </div>
+                </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script>
-let scene = new THREE.Scene();
-let camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight,0.1,100);
-let renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+                <div class="panel visualization">
+                    <h2>Current Status</h2>
+                    <div id="current-status">No current induced</div>
+                    <div class="field-display" id="field-display">
+                        <!-- Magnetic field lines will be drawn here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel simulation-container">
+                <canvas id="simulation-canvas" width="800" height="600"></canvas>                
+                <div class="current-indicator">
+                    <h3>Eddy Current Status</h3>
+                    <p id="canvas-current-status">No current induced</p>
+                </div>
+            </div>
+        </div>
 
-// Lights
-const light = new THREE.PointLight(0xffffff,1.5); light.position.set(5,5,5); scene.add(light);
-const ambient = new THREE.AmbientLight(0x404040); scene.add(ambient);
+    </div>
 
-// Coil (copper)
-function createCoil(radius=0.7, turns=10, length=2){
-  const curve = new THREE.Curve();
-  curve.getPoint = t => {
-    const angle = t * Math.PI*2*turns;
-    const x = radius*Math.cos(angle);
-    const y = radius*Math.sin(angle);
-    const z = length*(t-0.5);
-    return new THREE.Vector3(x,y,z);
-  };
-  const geo = new THREE.TubeGeometry(curve, 400, 0.05, 12,false);
-  const mat = new THREE.MeshStandardMaterial({color:0xff9900, metalness:0.7, roughness:0.2});
-  return new THREE.Mesh(geo, mat);
-}
-const coil = createCoil();
-scene.add(coil);
+    <script>
+        // Simulation variables
+        let canvas, ctx;
+        let animationId = null;
+        
+        // Physics constants
+        const GRAVITY = 9.8;
+        const PIXELS_PER_METER = 100;
+        
+        // Simulation objects
+        let magnet = {
+            x: 400,
+            y: 100,
+            width: 40,
+            height: 80,
+            velocity: 0,
+            acceleration: 0,
+            isFalling: false,
+            startY: 100,
+            northColor: '#ff5252',
+            southColor: '#2196f3'
+        };
+        
+        let tube = {
+            x: 350,
+            y: 200,
+            width: 100,
+            height: 300,
+            thickness: 15,
+            material: 'copper'
+        };
+        
+        // Configuration
+        let config = {
+            magnetStrength: 2,
+            tubeMaterial: 2,
+            tubeLength: 2,
+            startTime: 0,
+            tubeEntryTime: 0,
+            tubeExitTime: 0
+        };
+        
+        // DOM elements
+        const dropBtn = document.getElementById('drop-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const strengthSlider = document.getElementById('strength-slider');
+        const strengthValue = document.getElementById('strength-value');
+        const materialSlider = document.getElementById('material-slider');
+        const materialValue = document.getElementById('material-value');
+        const lengthSlider = document.getElementById('length-slider');
+        const lengthValue = document.getElementById('length-value');
+        
+        const positionValue = document.getElementById('position-value');
+        const speedValue = document.getElementById('speed-value');
+        const dragValue = document.getElementById('drag-value');
+        const tubeTime = document.getElementById('tube-time');
+        const fallTime = document.getElementById('fall-time');
+        const currentStatus = document.getElementById('current-status');
+        const canvasCurrentStatus = document.getElementById('canvas-current-status');
+        const fieldDisplay = document.getElementById('field-display');
 
-// Bar magnet
-const magnet = new THREE.Mesh(
-  new THREE.BoxGeometry(0.4,0.4,1.2),
-  new THREE.MeshStandardMaterial({color:0xff5555})
-);
-scene.add(magnet);
-const magnetS = new THREE.Mesh(
-  new THREE.BoxGeometry(0.2,0.4,0.6),
-  new THREE.MeshStandardMaterial({color:0x2266ff})
-);
-magnetS.position.z = -0.3; magnet.add(magnetS);
+        // Initialize simulation
+        function init() {
+            canvas = document.getElementById('simulation-canvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Start animation loop
+            animate();
+            
+            // Initial draw
+            draw();
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            dropBtn.addEventListener('click', dropMagnet);
+            resetBtn.addEventListener('click', resetSimulation);
+            
+            strengthSlider.addEventListener('input', updateStrength);
+            materialSlider.addEventListener('input', updateMaterial);
+            lengthSlider.addEventListener('input', updateLength);
+        }
+        
+        // Update magnet strength
+        function updateStrength() {
+            config.magnetStrength = parseInt(strengthSlider.value);
+            const strengths = ['Weak', 'Medium', 'Strong'];
+            strengthValue.textContent = strengths[config.magnetStrength - 1];
+        }
+        
+        // Update tube material
+        function updateMaterial() {
+            config.tubeMaterial = parseInt(materialSlider.value);
+            const materials = ['Plastic', 'Copper', 'Aluminum'];
+            materialValue.textContent = materials[config.tubeMaterial - 1];
+            
+            // Update tube material property
+            const materialTypes = ['plastic', 'copper', 'aluminum'];
+            tube.material = materialTypes[config.tubeMaterial - 1];
+        }
+        
+        // Update tube length
+        function updateLength() {
+            config.tubeLength = parseInt(lengthSlider.value);
+            const lengths = ['Short', 'Medium', 'Long'];
+            lengthValue.textContent = lengths[config.tubeLength - 1];
+            
+            // Update tube height
+            tube.height = 200 + (config.tubeLength - 1) * 100;
+        }
+        
+        // Start magnet drop
+        function dropMagnet() {
+            if (magnet.isFalling) return;
+            
+            magnet.isFalling = true;
+            magnet.velocity = 0;
+            magnet.acceleration = GRAVITY;
+            magnet.y = magnet.startY;
+            config.startTime = Date.now();
+            config.tubeEntryTime = 0;
+            config.tubeExitTime = 0;
+            
+            dropBtn.disabled = true;
+            dropBtn.textContent = 'Falling...';
+        }
+        
+        // Reset simulation
+        function resetSimulation() {
+            magnet.isFalling = false;
+            magnet.velocity = 0;
+            magnet.acceleration = 0;
+            magnet.y = magnet.startY;
+            
+            dropBtn.disabled = false;
+            dropBtn.textContent = 'Drop Magnet';
+            
+            updateDisplays();
+            updateFieldDisplay(false);
+        }
+        
+        // Update physics
+        function updatePhysics() {
+            if (!magnet.isFalling) return;
+            
+            const deltaTime = 0.016; // ~60fps
+            
+            // Calculate drag force based on Lenz's Law
+            let dragForce = 0;
+            let isInTube = false;
+            let hasCurrent = false;
+            
+            // Check if magnet is inside the tube
+            if (magnet.y + magnet.height/2 > tube.y && magnet.y - magnet.height/2 < tube.y + tube.height) {
+                isInTube = true;
+                
+                // Record tube entry time
+                if (config.tubeEntryTime === 0) {
+                    config.tubeEntryTime = Date.now();
+                }
+                
+                // Calculate drag force (only for conductive materials)
+                if (tube.material !== 'plastic') {
+                    hasCurrent = true;
+                    // Drag depends on material conductivity and magnet strength
+                    const conductivity = tube.material === 'copper' ? 1.0 : 0.7;
+                    dragForce = config.magnetStrength * conductivity * 8;
+                    
+                    // Also depends on velocity (higher velocity = more drag)
+                    dragForce += Math.abs(magnet.velocity) * 2;
+                }
+            } else if (magnet.y - magnet.height/2 > tube.y + tube.height && config.tubeExitTime === 0) {
+                // Magnet has exited the tube
+                config.tubeExitTime = Date.now();
+                
+                // Calculate and display fall time
+                const totalTime = (config.tubeExitTime - config.startTime) / 1000;
+                fallTime.textContent = totalTime.toFixed(2) + 's';
+            }
+            
+            // Update acceleration (gravity minus drag)
+            magnet.acceleration = GRAVITY - dragForce;
+            
+            // Update velocity and position
+            magnet.velocity += magnet.acceleration * deltaTime;
+            magnet.y += magnet.velocity * PIXELS_PER_METER * deltaTime;
+            
+            // Check if magnet has hit the bottom
+            if (magnet.y > canvas.height - 50) {
+                magnet.isFalling = false;
+                dropBtn.disabled = false;
+                dropBtn.textContent = 'Drop Magnet';
+                
+                // If magnet exited without recording time (edge case)
+                if (config.tubeExitTime === 0) {
+                    config.tubeExitTime = Date.now();
+                    const totalTime = (config.tubeExitTime - config.startTime) / 1000;
+                    fallTime.textContent = totalTime.toFixed(2) + 's';
+                }
+            }
+            
+            updateDisplays(isInTube, dragForce, hasCurrent);
+            updateFieldDisplay(hasCurrent);
+        }
+        
+        // Update information displays
+        function updateDisplays(isInTube, dragForce, hasCurrent) {
+            // Position
+            if (magnet.y < tube.y) {
+                positionValue.textContent = 'Above Tube';
+            } else if (magnet.y > tube.y + tube.height) {
+                positionValue.textContent = 'Below Tube';
+            } else {
+                positionValue.textContent = 'Inside Tube';
+            }
+            
+            // Speed
+            speedValue.textContent = Math.abs(magnet.velocity).toFixed(1) + ' m/s';
+            
+            // Drag force
+            if (dragForce > 0) {
+                dragValue.textContent = 'Strong';
+                currentStatus.textContent = 'Eddy currents creating magnetic drag';
+                canvasCurrentStatus.textContent = 'Eddy currents creating magnetic drag';
+            } else if (isInTube) {
+                dragValue.textContent = 'None';
+                currentStatus.textContent = 'No currents (non-conductive tube)';
+                canvasCurrentStatus.textContent = 'No currents (non-conductive tube)';
+            } else {
+                dragValue.textContent = 'None';
+                currentStatus.textContent = 'No current induced';
+                canvasCurrentStatus.textContent = 'No current induced';
+            }
+            
+            // Time in tube
+            if (config.tubeEntryTime > 0 && config.tubeExitTime === 0) {
+                const timeInTube = (Date.now() - config.tubeEntryTime) / 1000;
+                tubeTime.textContent = timeInTube.toFixed(2) + 's';
+            }
+        }
 
-// Magnetic field lines along magnet axis
-const fieldGroup = new THREE.Group();
-for(let i=0;i<12;i++){
-  const curve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(i*0.05-0.3,0,-1),
-    new THREE.Vector3(0,0,i*0.1-0.5),
-    new THREE.Vector3(i*0.05-0.3,0,1)
-  ]);
-  const geo = new THREE.TubeGeometry(curve,20,0.01,8,false);
-  const mat = new THREE.MeshBasicMaterial({color:0x44ccff});
-  const line = new THREE.Mesh(geo,mat);
-  fieldGroup.add(line);
-}
-scene.add(fieldGroup);
-
-// Arrows showing induced current in coil (opposing flux)
-const arrows = [];
-for(let i=-4;i<=4;i++){
-  const arrow = new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3(0.5,0,i*0.3),0.5,0xffff00);
-  scene.add(arrow);
-  arrows.push(arrow);
-}
-
-// Bulb connected to coil
-const bulb = new THREE.Mesh(
-  new THREE.SphereGeometry(0.2,16,16),
-  new THREE.MeshStandardMaterial({color:0xffffee, emissive:0x000000})
-);
-bulb.position.set(1.5,0,0);
-scene.add(bulb);
-
-// Camera
-camera.position.set(4,3,2); camera.lookAt(0,0,0);
-
-// Controls
-const slider = document.getElementById("magSlider");
-let autoMove=false;
-document.getElementById("autoMove").addEventListener("change", e=>autoMove=e.target.checked);
-
-// Animation vars
-let time=0;
-let lastFlux=0;
-
-function animate(){
-  requestAnimationFrame(animate);
-  time+=0.03;
-
-  // Magnet movement
-  if(autoMove){
-    magnet.position.z = Math.sin(time)*2;
-    slider.value = magnet.position.z;
-  } else magnet.position.z = parseFloat(slider.value);
-  document.getElementById("magPos").innerText = magnet.position.z.toFixed(2);
-
-  // Approx magnetic flux through coil (primary along z)
-  const dist = magnet.position.z; // flux proportional to distance along axis
-  const flux = 1/(dist*dist+0.1);
-  const inducedEMF = -(flux-lastFlux)/0.03; // Lenz: oppose change
-  lastFlux = flux;
-
-  // Bulb glow proportional to induced EMF
-  const glow = Math.min(1, Math.abs(inducedEMF));
-  bulb.material.emissiveIntensity = glow;
-  bulb.material.emissive.setHex(0xffff00);
-
-  // Arrows direction in coil (opposing flux)
-  const dir = Math.sign(inducedEMF)||1;
-  arrows.forEach(a=>{
-    a.setDirection(new THREE.Vector3(0,dir,0));
-  });
-
-  // Field lines move slightly with magnet
-  fieldGroup.position.z = magnet.position.z;
-
-  renderer.render(scene,camera);
-}
-
-animate();
-
-// Resize
-window.addEventListener("resize", ()=>{
-  camera.aspect=window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-</script>
+        // Update magnetic field visualization
+        function updateFieldDisplay(hasCurrent) {
+            fieldDisplay.innerHTML = '';
+            
+            if (hasCurrent) {
+                // Create magnetic field lines
+                for (let i = 0; i < 12; i++) {
+                    const angle = (i / 12) * Math.PI * 2;
+                    const line = document.createElement('div');
+                    line.className = 'field-line';
+                    
+                    const length = 80;
+                    const centerX = 150;
+                    const centerY = 60;
+                    
+                    line.style.width = `${length}px`;
+                    line.style.left = `${centerX}px`;
+                    line.style.top = `${centerY}px`;
+                    line.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
+                    
+                    fieldDisplay.appendChild(line);
+                }
+            } else {
+                // Show no field lines
+                const noField = document.createElement('div');
+                noField.textContent = 'No magnetic field detected';
+                noField.style.textAlign = 'center';
+                noField.style.paddingTop = '50px';
+                noField.style.opacity = '0.7';
+                fieldDisplay.appendChild(noField);
+            }
+        }
+        
+        // Draw everything
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = 'rgba(26, 35, 126, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw tube
+            drawTube();
+            
+            // Draw magnet
+            drawMagnet();
+            
+            // Draw magnetic field when in conductive tube
+            if (magnet.isFalling && 
+                magnet.y + magnet.height/2 > tube.y && 
+                magnet.y - magnet.height/2 < tube.y + tube.height &&
+                tube.material !== 'plastic') {
+                drawMagneticField();
+            }
+            
+            // Draw labels
+            drawLabels();
+        }
+        
+        // Draw the tube
+        function drawTube() {
+            // Tube color based on material
+            let tubeColor;
+            switch(tube.material) {
+                case 'plastic':
+                    tubeColor = '#78909c';
+                    break;
+                case 'copper':
+                    tubeColor = '#b87333';
+                    break;
+                case 'aluminum':
+                    tubeColor = '#a8a8a8';
+                    break;
+            }
+            
+            // Draw tube outer
+            ctx.fillStyle = tubeColor;
+            ctx.fillRect(tube.x, tube.y, tube.width, tube.height);
+            
+            // Draw tube inner (hole)
+            ctx.fillStyle = 'rgba(26, 35, 126, 0.9)';
+            const innerX = tube.x + tube.thickness;
+            const innerY = tube.y;
+            const innerWidth = tube.width - tube.thickness * 2;
+            const innerHeight = tube.height;
+            ctx.fillRect(innerX, innerY, innerWidth, innerHeight);
+            
+            // Add metallic shine for conductive materials
+            if (tube.material !== 'plastic') {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(tube.x, tube.y, tube.width, tube.height);
+            }
+            
+            // Draw tube label
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(tube.material.charAt(0).toUpperCase() + tube.material.slice(1) + ' Tube', 
+                        tube.x + tube.width/2, tube.y - 10);
+        }
+        
+        // Draw the magnet
+        function drawMagnet() {
+            const magnetTop = magnet.y - magnet.height/2;
+            const magnetBottom = magnet.y + magnet.height/2;
+            
+            // Magnet body
+            ctx.fillStyle = '#424242';
+            ctx.fillRect(
+                magnet.x - magnet.width/2,
+                magnetTop,
+                magnet.width,
+                magnet.height
+            );
+            
+            // North pole (red)
+            ctx.fillStyle = magnet.northColor;
+            ctx.fillRect(
+                magnet.x - magnet.width/2,
+                magnetTop,
+                magnet.width,
+                magnet.height/2
+            );
+            
+            // South pole (blue)
+            ctx.fillStyle = magnet.southColor;
+            ctx.fillRect(
+                magnet.x - magnet.width/2,
+                magnetTop + magnet.height/2,
+                magnet.width,
+                magnet.height/2
+            );
+            
+            // Add labels
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('N', magnet.x, magnetTop + magnet.height/4);
+            ctx.fillText('S', magnet.x, magnetBottom - magnet.height/4);
+            
+            // Add outline
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(
+                magnet.x - magnet.width/2,
+                magnetTop,
+                magnet.width,
+                magnet.height
+            );
+        }
+        
+        // Draw magnetic field visualization
+        function drawMagneticField() {
+            ctx.strokeStyle = 'rgba(0, 150, 255, 0.6)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            
+            // Draw field lines around magnet
+            const numLines = 12;
+            for (let i = 0; i < numLines; i++) {
+                const angle = (i / numLines) * Math.PI * 2;
+                const startX = magnet.x + Math.cos(angle) * magnet.width/2;
+                const startY = magnet.y + Math.sin(angle) * magnet.width/2;
+                
+                const endX = magnet.x + Math.cos(angle) * (magnet.width/2 + 60);
+                const endY = magnet.y + Math.sin(angle) * (magnet.width/2 + 60);
+                
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+            }
+            
+            ctx.setLineDash([]);
+        }
+        
+        // Draw labels and information
+        function drawLabels() {
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            
+            // Title
+            ctx.fillText('Lenz\'s Law Demonstration', canvas.width/2, 20);
+            
+            // Instructions
+            if (!magnet.isFalling) {
+                ctx.font = '14px Arial';
+                ctx.fillText('Click "Drop Magnet" to start the experiment', canvas.width/2, 50);
+            }
+        }
+        
+        // Main animation loop
+        function animate() {
+            updatePhysics();
+            draw();
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', init);
+    </script>
 </body>
 </html>
