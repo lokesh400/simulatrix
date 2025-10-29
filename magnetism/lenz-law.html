@@ -13,7 +13,7 @@
         }
         
         body {
-            background: black;
+            background: #000000;
             color: white;
             min-height: 100vh;
             padding: 20px;
@@ -29,15 +29,17 @@
             text-align: center;
             margin-bottom: 30px;
             padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.8);
             border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
         }
         
         h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            color: #ffab00;
         }
         
         .subtitle {
@@ -46,6 +48,7 @@
             max-width: 800px;
             margin: 0 auto;
             line-height: 1.6;
+            color: #ccc;
         }
         
         .main-content {
@@ -68,34 +71,38 @@
         }
         
         .panel {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
         }
         
         .panel h2 {
             margin-bottom: 15px;
             font-size: 1.5rem;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid #ffab00;
             padding-bottom: 8px;
+            color: #ffab00;
         }
         
         .simulation-container {
             height: 600px;
             position: relative;
-            background: rgba(0, 0, 0);
+            background: #000000;
             border-radius: 15px;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            border: 1px solid #333;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
         }
         
         #simulation-canvas {
             display: block;
-            background: rgba(26, 35, 126, 0.1);
+            background: #000000;
         }
         
         .controls {
@@ -114,18 +121,20 @@
             font-weight: 600;
             display: flex;
             justify-content: space-between;
+            color: #fff;
         }
         
         .value-display {
             font-weight: normal;
             opacity: 0.9;
+            color: #ffab00;
         }
         
         input[type="range"] {
             width: 100%;
             height: 8px;
             border-radius: 5px;
-            background: rgba(255, 255, 255, 0.2);
+            background: #333;
             outline: none;
             -webkit-appearance: none;
         }
@@ -138,6 +147,7 @@
             background: #ffab00;
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: 2px solid #000;
         }
         
         .buttons {
@@ -152,17 +162,18 @@
             border: none;
             border-radius: 8px;
             background: #ffab00;
-            color: #1a237e;
+            color: #000;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
         }
         
         button:hover {
             background: #ffc400;
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7);
         }
         
         button:active {
@@ -170,7 +181,8 @@
         }
         
         button:disabled {
-            background: #666;
+            background: #444;
+            color: #666;
             cursor: not-allowed;
             transform: none;
         }
@@ -182,10 +194,11 @@
         }
         
         .stat-item {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(30, 30, 30, 0.8);
             padding: 15px;
             border-radius: 10px;
             text-align: center;
+            border: 1px solid #333;
         }
         
         .stat-value {
@@ -198,6 +211,7 @@
         .stat-label {
             font-size: 0.9rem;
             opacity: 0.8;
+            color: #ccc;
         }
         
         .explanation {
@@ -206,6 +220,7 @@
         
         .explanation-content {
             line-height: 1.6;
+            color: #ccc;
         }
         
         .explanation-content p {
@@ -218,6 +233,7 @@
             background: rgba(255, 171, 0, 0.1);
             border-radius: 10px;
             border-left: 4px solid #ffab00;
+            border: 1px solid #333;
         }
         
         .law-statement h3 {
@@ -230,8 +246,9 @@
             justify-content: space-around;
             margin-top: 20px;
             padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(30, 30, 30, 0.8);
             border-radius: 10px;
+            border: 1px solid #333;
         }
         
         .comparison-item {
@@ -252,56 +269,98 @@
             padding: 20px;
             opacity: 0.8;
             font-size: 0.9rem;
+            color: #666;
         }
         
         .experiment-info {
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.85);
             padding: 15px;
             border-radius: 10px;
             font-size: 0.9rem;
             max-width: 300px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        .experiment-info h3 {
+            color: #ffab00;
+            margin-bottom: 10px;
+        }
+        
+        .experiment-info p {
+            color: #ccc;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
         }
         
         .current-indicator {
             position: absolute;
             bottom: 20px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.85);
             padding: 15px;
             border-radius: 10px;
             font-size: 0.9rem;
             max-width: 250px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .current-indicator h3 {
+            color: #ffab00;
+            margin-bottom: 10px;
         }
 
         .visualization {
             margin-top: 20px;
             padding: 15px;
-            /* background: rgba(255, 255, 255, 0.1); */
+            background: rgba(30, 30, 30, 0.8);
             border-radius: 10px;
+            border: 1px solid #333;
         }
 
         .field-display {
             height: 120px;
-            background: rgba(0, 0, 0, 0.2);
+            background: #000;
             border-radius: 10px;
             position: relative;
             overflow: hidden;
             margin-top: 10px;
+            border: 1px solid #333;
         }
 
         .field-line {
             position: absolute;
             height: 2px;
-            background: rgba(0, 150, 255, 0.6);
+            background: rgba(0, 150, 255, 0.8);
             transform-origin: left center;
+        }
+
+        #current-status {
+            color: #ffab00;
+            font-weight: 600;
+            padding: 10px;
+            background: rgba(30, 30, 30, 0.8);
+            border-radius: 5px;
+            border: 1px solid #333;
+        }
+
+        #canvas-current-status {
+            color: #ffab00;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <header>
+            <h1>Lenz's Law Demonstration</h1>
+            <p class="subtitle">Watch how a falling magnet slows down dramatically when passing through a copper tube due to induced eddy currents that oppose the motion.</p>
+        </header>
+        
         <div class="main-content">
             <div class="left-panel">
                 <div class="panel controls">
@@ -380,7 +439,16 @@
             </div>
             
             <div class="panel simulation-container">
-                <canvas id="simulation-canvas" width="800" height="600"></canvas>                
+                <canvas id="simulation-canvas" width="800" height="600"></canvas>
+                
+                <div class="experiment-info">
+                    <h3>Experiment Setup</h3>
+                    <p>• Magnet is dropped through a conductive tube</p>
+                    <p>• Changing magnetic field induces eddy currents</p>
+                    <p>• Currents create opposing magnetic field</p>
+                    <p>• Magnet falls slowly due to magnetic drag</p>
+                </div>
+                
                 <div class="current-indicator">
                     <h3>Eddy Current Status</h3>
                     <p id="canvas-current-status">No current induced</p>
@@ -388,6 +456,30 @@
             </div>
         </div>
 
+        <div class="panel explanation">
+            <h2>Lenz's Law Explained</h2>
+            <div class="explanation-content">
+                <p>When a magnet falls through a conductive tube, its motion creates a changing magnetic field inside the tube. According to Faraday's Law, this changing magnetic field induces electric currents (eddy currents) in the conductor.</p>
+                
+                <div class="law-statement">
+                    <h3>Lenz's Law:</h3>
+                    <p><em>"The direction of the induced current is such that it opposes the change that produced it."</em></p>
+                </div>
+                
+                <p>The induced eddy currents create their own magnetic field that opposes the magnet's motion. This magnetic drag force slows down the magnet's fall dramatically compared to free fall through air or a non-conductive tube.</p>
+                
+                <p><strong>Key factors affecting the drag force:</strong></p>
+                <ul>
+                    <li><strong>Conductivity:</strong> Better conductors (copper, aluminum) create stronger eddy currents</li>
+                    <li><strong>Magnet strength:</strong> Stronger magnets induce stronger currents</li>
+                    <li><strong>Tube thickness:</strong> Thicker conductive material allows more current flow</li>
+                </ul>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Lenz's Law Demonstration | Electromagnetic Induction Simulation</p>
+        </footer>
     </div>
 
     <script>
@@ -663,14 +755,15 @@
                 noField.style.textAlign = 'center';
                 noField.style.paddingTop = '50px';
                 noField.style.opacity = '0.7';
+                noField.style.color = '#666';
                 fieldDisplay.appendChild(noField);
             }
         }
         
         // Draw everything
         function draw() {
-            // Clear canvas
-            ctx.fillStyle = 'rgba(26, 35, 126, 0.1)';
+            // Clear canvas with black background
+            ctx.fillStyle = '#000000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Draw tube
@@ -697,7 +790,7 @@
             let tubeColor;
             switch(tube.material) {
                 case 'plastic':
-                    tubeColor = '#78909c';
+                    tubeColor = '#555';
                     break;
                 case 'copper':
                     tubeColor = '#b87333';
@@ -712,7 +805,7 @@
             ctx.fillRect(tube.x, tube.y, tube.width, tube.height);
             
             // Draw tube inner (hole)
-            ctx.fillStyle = 'rgba(26, 35, 126, 0.9)';
+            ctx.fillStyle = '#000';
             const innerX = tube.x + tube.thickness;
             const innerY = tube.y;
             const innerWidth = tube.width - tube.thickness * 2;
@@ -727,7 +820,7 @@
             }
             
             // Draw tube label
-            ctx.fillStyle = 'white';
+            ctx.fillStyle = '#ffab00';
             ctx.font = '16px Arial';
             ctx.textAlign = 'center';
             ctx.fillText(tube.material.charAt(0).toUpperCase() + tube.material.slice(1) + ' Tube', 
@@ -740,7 +833,7 @@
             const magnetBottom = magnet.y + magnet.height/2;
             
             // Magnet body
-            ctx.fillStyle = '#424242';
+            ctx.fillStyle = '#333';
             ctx.fillRect(
                 magnet.x - magnet.width/2,
                 magnetTop,
@@ -787,7 +880,7 @@
         
         // Draw magnetic field visualization
         function drawMagneticField() {
-            ctx.strokeStyle = 'rgba(0, 150, 255, 0.6)';
+            ctx.strokeStyle = 'rgba(0, 150, 255, 0.8)';
             ctx.lineWidth = 1;
             ctx.setLineDash([5, 5]);
             
@@ -812,7 +905,7 @@
         
         // Draw labels and information
         function drawLabels() {
-            ctx.fillStyle = 'white';
+            ctx.fillStyle = '#ffab00';
             ctx.font = '16px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
@@ -823,6 +916,7 @@
             // Instructions
             if (!magnet.isFalling) {
                 ctx.font = '14px Arial';
+                ctx.fillStyle = '#ccc';
                 ctx.fillText('Click "Drop Magnet" to start the experiment', canvas.width/2, 50);
             }
         }

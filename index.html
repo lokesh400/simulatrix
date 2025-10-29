@@ -1,378 +1,1014 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simulatrix - Physics Simulations</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<style>
-body {background:#0d1117; color:white; font-family:sans-serif;}
-.navbar {background-color:#1f2937;}
-.hero {padding:80px 0; background: linear-gradient(135deg,#1a2a6c,#2d1a6c,#6c1a2a); color:white;}
-.hero h1 {font-weight:700;}
-.hero p {font-size:1.2rem;}
-.category-card {background:#1f2937; border-radius:15px; padding:20px; margin-bottom:30px; transition:0.3s; height:100%;}
-.category-card:hover {transform: translateY(-5px); box-shadow:0 10px 25px rgba(0,0,0,0.5);}
-.category-header {font-size:1.3rem; font-weight:600; margin-bottom:15px; display:flex; align-items:center; gap:10px; color:#facc15;}
-.simulation-link {display:flex; align-items:center; gap:10px; font-size:1.05rem; color:white; text-decoration:none; margin-bottom:8px; padding:6px 8px; border-radius:8px; transition:0.3s;}
-.simulation-link i {width:20px; text-align:center;}
-.simulation-link:hover {color:#111; background:#facc15; text-decoration:none; box-shadow:0 5px 15px rgba(250,204,21,0.5);}
-footer {background:#111; text-align:center; padding:20px; margin-top:50px;}
-</style>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9967030840996133"
-     crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatrix - Interactive Physics Laboratory</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 60px 0 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #fff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            font-size: 1.4rem;
+            font-weight: 300;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 40px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            display: block;
+            color: #ffd700;
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Search and Filter */
+        .search-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            border-color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Simulations Grid */
+        .simulations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+
+        .category-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--category-color, #667eea), var(--category-color-light, #764ba2));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .category-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            background: linear-gradient(135deg, var(--category-color, #667eea), var(--category-color-light, #764ba2));
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .category-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .category-description {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .simulation-count {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .simulations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .simulation-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: #4a5568;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .simulation-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .simulation-link:hover {
+            background: rgba(102, 126, 234, 0.05);
+            color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .simulation-link:hover::before {
+            left: 100%;
+        }
+
+        .simulation-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+            color: var(--category-color, #667eea);
+        }
+
+        /* Category Color Schemes */
+        .category-card[data-category="units"] {
+            --category-color: #10b981;
+            --category-color-light: #34d399;
+        }
+
+        .category-card[data-category="kinematics"] {
+            --category-color: #3b82f6;
+            --category-color-light: #60a5fa;
+        }
+
+        .category-card[data-category="shm"] {
+            --category-color: #8b5cf6;
+            --category-color-light: #a78bfa;
+        }
+
+        .category-card[data-category="magnetism"] {
+            --category-color: #ef4444;
+            --category-color-light: #f87171;
+        }
+
+        .category-card[data-category="waves"] {
+            --category-color: #06b6d4;
+            --category-color-light: #22d3ee;
+        }
+
+        .category-card[data-category="electrostatics"] {
+            --category-color: #f59e0b;
+            --category-color-light: #fbbf24;
+        }
+
+        .category-card[data-category="optics"] {
+            --category-color: #ec4899;
+            --category-color-light: #f472b6;
+        }
+
+        .category-card[data-category="electricity"] {
+            --category-color: #84cc16;
+            --category-color-light: #a3e635;
+        }
+
+        .category-card[data-category="mechanics"] {
+            --category-color: #6366f1;
+            --category-color-light: #818cf8;
+        }
+
+        .category-card[data-category="thermodynamics"] {
+            --category-color: #f97316;
+            --category-color-light: #fb923c;
+        }
+
+        .category-card[data-category="modern"] {
+            --category-color: #8b5cf6;
+            --category-color-light: #a78bfa;
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            padding: 40px 0;
+            text-align: center;
+            color: white;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .footer-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .footer-link:hover {
+            color: #ffd700;
+            transform: translateY(-2px);
+        }
+
+        .footer-text {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .stats {
+                gap: 30px;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .search-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: auto;
+            }
+
+            .simulations-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-links {
+                justify-content: center;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Hidden class for filtering */
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
-  <!-- Header -->
-  <header class="header">
+    <!-- Animated Background Particles -->
+    <div class="particles" id="particles"></div>
+
     <div class="container">
-      <div class="header-content">
-        <a href="#" class="logo">
-          <i class="fas fa-atom"></i>
-          Simulatrix
-        </a>
-      </div>
+        <!-- Header -->
+        <header class="header">
+            <h1><i class="fas fa-atom"></i> Simulatrix</h1>
+            <p class="subtitle">Interactive Physics Laboratory - Explore, Learn, Discover</p>
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-number" id="totalSims">45+</span>
+                    <span class="stat-label">Simulations</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">11</span>
+                    <span class="stat-label">Physics Topics</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">100%</span>
+                    <span class="stat-label">Interactive</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search and Filter Section -->
+        <section class="search-section">
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Search simulations..." id="searchInput">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All Topics</button>
+                    <button class="filter-btn" data-filter="mechanics">Mechanics</button>
+                    <button class="filter-btn" data-filter="electricity">Electricity</button>
+                    <button class="filter-btn" data-filter="optics">Optics</button>
+                    <button class="filter-btn" data-filter="modern">Modern Physics</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Simulations Grid -->
+        <main class="simulations-grid" id="simulationsGrid">
+            <!-- Units and Dimensions -->
+            <div class="category-card loading" data-category="units" data-tags="measurement precision instruments">
+                <div class="simulation-count">2 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-ruler"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Units & Dimensions</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Master precision measurement with interactive instruments and learn the fundamentals of scientific measurement.
+                </div>
+                <div class="simulations-list">
+                    <a href="./und/screwgauge.html" class="simulation-link">
+                        <i class="fas fa-tools"></i>
+                        Screw Gauge (Micrometer)
+                    </a>
+                    <a href="./und/vernier.html" class="simulation-link">
+                        <i class="fas fa-ruler-combined"></i>
+                        Vernier Caliper
+                    </a>
+                </div>
+            </div>
+
+            <!-- Kinematics -->
+            <div class="category-card loading" data-category="kinematics" data-tags="motion velocity acceleration projectile">
+                <div class="simulation-count">3 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Kinematics</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Explore the motion of objects through interactive simulations of free fall, projectile motion, and circular dynamics.
+                </div>
+                <div class="simulations-list">
+                    <a href="./kinematics/freefall.html" class="simulation-link">
+                        <i class="fas fa-arrow-down"></i>
+                        Free Fall Motion
+                    </a>
+                    <a href="./kinematics/projectile.html" class="simulation-link">
+                        <i class="fas fa-bullseye"></i>
+                        Projectile Motion
+                    </a>
+                    <a href="./kinematics/circular.html" class="simulation-link">
+                        <i class="fas fa-sync"></i>
+                        Circular Motion
+                    </a>
+                </div>
+            </div>
+
+            <!-- Simple Harmonic Motion -->
+            <div class="category-card loading" data-category="shm" data-tags="oscillation pendulum harmonic vibration">
+                <div class="simulation-count">3 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-wave-square"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Simple Harmonic Motion</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Understand oscillatory motion through pendulums, springs, and other harmonic systems with real-time analysis.
+                </div>
+                <div class="simulations-list">
+                    <a href="./shm/shm.html" class="simulation-link">
+                        <i class="fas fa-infinity"></i>
+                        Simple SHM
+                    </a>
+                    <a href="./shm/simple-pendulum.html" class="simulation-link">
+                        <i class="fas fa-clock"></i>
+                        Simple Pendulum
+                    </a>
+                    <a href="./shm/vertical-shm.html" class="simulation-link">
+                        <i class="fas fa-arrows-alt-v"></i>
+                        Vertical SHM
+                    </a>
+                </div>
+            </div>
+
+            <!-- Magnetism -->
+            <div class="category-card loading" data-category="magnetism" data-tags="magnetic field induction lenz oscillation">
+                <div class="simulation-count">5 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-magnet"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Magnetism</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Explore magnetic fields, electromagnetic induction, and the fascinating world of magnetic phenomena.
+                </div>
+                <div class="simulations-list">
+                    <a href="./magnetism/induction.html" class="simulation-link">
+                        <i class="fas fa-bolt"></i>
+                        Magnetic Induction
+                    </a>
+                    <a href="./magnetism/mutual-inductance.html" class="simulation-link">
+                        <i class="fas fa-exchange-alt"></i>
+                        Mutual Inductance
+                    </a>
+                    <a href="./magnetism/lenz-law.html" class="simulation-link">
+                        <i class="fas fa-balance-scale"></i>
+                        Lenz's Law
+                    </a>
+                    <a href="./magnetism/LC_Oscillations.html" class="simulation-link">
+                        <i class="fas fa-wave-square"></i>
+                        LC Oscillations
+                    </a>
+                    <a href="./magnetism/charge-in-mf.html" class="simulation-link">
+                        <i class="fas fa-atom"></i>
+                        Charge in Magnetic Field
+                    </a>
+                </div>
+            </div>
+
+            <!-- Waves -->
+            <div class="category-card loading" data-category="waves" data-tags="wave interference string water ripples">
+                <div class="simulation-count">4 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Waves</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Visualize wave phenomena including string waves, water ripples, interference patterns, and standing waves.
+                </div>
+                <div class="simulations-list">
+                    <a href="./waves/wave-on-string.html" class="simulation-link">
+                        <i class="fas fa-guitar"></i>
+                        Wave on String
+                    </a>
+                    <a href="./waves/wave-interference.html" class="simulation-link">
+                        <i class="fas fa-wave-square"></i>
+                        Wave Interference
+                    </a>
+                    <a href="./waves/water-ripples.html" class="simulation-link">
+                        <i class="fas fa-tint"></i>
+                        Water Ripples
+                    </a>
+                    <a href="./waves/standing-waves.html" class="simulation-link">
+                        <i class="fas fa-chart-line"></i>
+                        Standing Waves
+                    </a>
+                </div>
+            </div>
+
+            <!-- Electrostatics -->
+            <div class="category-card loading" data-category="electrostatics" data-tags="electric field potential charge">
+                <div class="simulation-count">2 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Electrostatics</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Study electric fields, charges, and potential surfaces through interactive visualizations and experiments.
+                </div>
+                <div class="simulations-list">
+                    <a href="./electrostatics/electric-field.html" class="simulation-link">
+                        <i class="fas fa-project-diagram"></i>
+                        Electric Field
+                    </a>
+                    <a href="./electrostatics/equipotential-surface.html" class="simulation-link">
+                        <i class="fas fa-layer-group"></i>
+                        Equipotential Surfaces
+                    </a>
+                </div>
+            </div>
+
+            <!-- Ray Optics -->
+            <div class="category-card loading" data-category="optics" data-tags="lens mirror refraction reflection prism">
+                <div class="simulation-count">4 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Ray Optics</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Explore light behavior through lenses, mirrors, prisms, and discover the principles of geometric optics.
+                </div>
+                <div class="simulations-list">
+                    <a href="./rayoptics/image-formation.html" class="simulation-link">
+                        <i class="fas fa-search"></i>
+                        Lens Image Formation
+                    </a>
+                    <a href="./rayoptics/image-mirror.html" class="simulation-link">
+                        <i class="fas fa-mirror"></i>
+                        Mirror Reflection
+                    </a>
+                    <a href="./rayoptics/refraction-tir.html" class="simulation-link">
+                        <i class="fas fa-prism"></i>
+                        Refraction & TIR
+                    </a>
+                    <a href="./rayoptics/prism-light.html" class="simulation-link">
+                        <i class="fas fa-rainbow"></i>
+                        Prism Light Dispersion
+                    </a>
+                </div>
+            </div>
+
+            <!-- Wave Optics -->
+            <div class="category-card loading" data-category="optics" data-tags="interference diffraction polarization double-slit">
+                <div class="simulation-count">3 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Wave Optics</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Discover the wave nature of light through interference, diffraction, and polarization experiments.
+                </div>
+                <div class="simulations-list">
+                    <a href="./waveoptics/ydse.html" class="simulation-link">
+                        <i class="fas fa-columns"></i>
+                        Young's Double-Slit
+                    </a>
+                    <a href="./waveoptics/diffraction.html" class="simulation-link">
+                        <i class="fas fa-expand-arrows-alt"></i>
+                        Diffraction Patterns
+                    </a>
+                    <a href="./waveoptics/polarizer.html" class="simulation-link">
+                        <i class="fas fa-filter"></i>
+                        Light Polarization
+                    </a>
+                </div>
+            </div>
+
+            <!-- Current Electricity -->
+            <div class="category-card loading" data-category="electricity" data-tags="current resistance capacitor ohm">
+                <div class="simulation-count">2 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Current Electricity</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Study electrical circuits, Ohm's law, and capacitor behavior through interactive circuit simulations.
+                </div>
+                <div class="simulations-list">
+                    <a href="./currentelectricity/charging-discharging.html" class="simulation-link">
+                        <i class="fas fa-battery-half"></i>
+                        Capacitor Charging
+                    </a>
+                    <a href="./currentelectricity/resistor.html" class="simulation-link">
+                        <i class="fas fa-microchip"></i>
+                        Ohm's Law
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mechanics -->
+            <div class="category-card loading" data-category="mechanics" data-tags="force motion collision incline">
+                <div class="simulation-count">2 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Mechanics</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Explore Newton's laws, collisions, and mechanical systems through interactive physics experiments.
+                </div>
+                <div class="simulations-list">
+                    <a href="./nlm/wedge.html" class="simulation-link">
+                        <i class="fas fa-angle-up"></i>
+                        Block on Incline
+                    </a>
+                    <a href="./com/collision.html" class="simulation-link">
+                        <i class="fas fa-meteor"></i>
+                        Collision Dynamics
+                    </a>
+                </div>
+            </div>
+
+            <!-- Thermodynamics -->
+            <div class="category-card loading" data-category="thermodynamics" data-tags="heat temperature gas pressure volume">
+                <div class="simulation-count">5 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-thermometer-half"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Thermodynamics</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Study heat transfer, gas laws, and thermodynamic processes through interactive molecular simulations.
+                </div>
+                <div class="simulations-list">
+                    <a href="./heatandthermo/conduction.html" class="simulation-link">
+                        <i class="fas fa-fire"></i>
+                        Heat Conduction
+                    </a>
+                    <a href="./ktg/gas.html" class="simulation-link">
+                        <i class="fas fa-cloud"></i>
+                        Gas Laws
+                    </a>
+                    <a href="./ktg/gas-compression-expansion.html" class="simulation-link">
+                        <i class="fas fa-compress-arrows-alt"></i>
+                        Gas Compression
+                    </a>
+                    <a href="./ktg/heat-at-contt-volume.html" class="simulation-link">
+                        <i class="fas fa-cube"></i>
+                        Constant Volume Heating
+                    </a>
+                    <a href="./ktg/heat-at-contt-pressure.html" class="simulation-link">
+                        <i class="fas fa-weight"></i>
+                        Constant Pressure Heating
+                    </a>
+                </div>
+            </div>
+
+            <!-- Modern Physics -->
+            <div class="category-card loading" data-category="modern" data-tags="photoelectric rutherford quantum atomic">
+                <div class="simulation-count">3 sims</div>
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-atom"></i>
+                    </div>
+                    <div>
+                        <div class="category-title">Modern Physics</div>
+                    </div>
+                </div>
+                <div class="category-description">
+                    Explore quantum mechanics, atomic structure, and groundbreaking experiments that shaped modern physics.
+                </div>
+                <div class="simulations-list">
+                    <a href="./modern/photoelectriceffect.html" class="simulation-link">
+                        <i class="fas fa-sun"></i>
+                        Photoelectric Effect
+                    </a>
+                    <a href="./modern/rutherford-exp.html" class="simulation-link">
+                        <i class="fas fa-crosshairs"></i>
+                        Rutherford Experiment
+                    </a>
+                    <a href="./emwaves/emwave.html" class="simulation-link">
+                        <i class="fas fa-broadcast-tower"></i>
+                        EM Wave Propagation
+                    </a>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" class="footer-link">About</a>
+                    <a href="#" class="footer-link">Documentation</a>
+                    <a href="#" class="footer-link">GitHub</a>
+                    <a href="#" class="footer-link">Contact</a>
+                </div>
+                <div class="footer-text">
+                    © 2025 Simulatrix - Interactive Physics Learning Platform
+                </div>
+            </div>
+        </footer>
     </div>
-  </header>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="container">
-      <h1>Physics Simulations</h1>
-      <p>Interactive simulations to explore and understand physics concepts through hands-on experimentation.</p>
-    </div>
-  </section>
+    <script>
+        // Create animated background particles
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            const particleCount = 50;
 
-  <!-- Main Content -->
-  <main class="main-content">
-    <div class="container">
-      <h2 class="section-title">Browse Simulations</h2>
-      
-      <div class="simulations-grid">
-        <!-- Units And Dimensions -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-ruler"></i>
-            </div>
-            Units And Dimensions
-          </div>
-          <div class="simulation-list">
-            <a href="./und/screwgauge.html" class="simulation-link">
-              <i class="fas fa-tools"></i>
-              Screw Gauge
-            </a>
-            <a href="./und/vernier.html" class="simulation-link">
-              <i class="fas fa-ruler-combined"></i>
-              Vernier Caliper
-            </a>
-          </div>
-        </div>
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particles.appendChild(particle);
+            }
+        }
 
-        <!-- Kinematics -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-running"></i>
-            </div>
-            Kinematics
-          </div>
-          <div class="simulation-list">
-            <a href="./kinematics/freefall.html" class="simulation-link">
-              <i class="fas fa-arrow-down"></i>
-              Free Fall
-            </a>
-            <a href="./kinematics/projectile.html" class="simulation-link">
-              <i class="fas fa-bullseye"></i>
-              Projectile Motion
-            </a>
-            <a href="./kinematics/circular.html" class="simulation-link">
-              <i class="fas fa-sync"></i>
-              Circular Motion
-            </a>
-          </div>
-        </div>
+        // Search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const cards = document.querySelectorAll('.category-card');
 
-        <!-- Simple Harmonic Motion -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-wave-square"></i>
-            </div>
-            Simple Harmonic Motion
-          </div>
-          <div class="simulation-list">
-            <a href="./shm/shm.html" class="simulation-link">
-              <i class="fas fa-infinity"></i>
-              Simple SHM
-            </a>
-            <a href="./shm/simple-pendulum.html" class="simulation-link">
-              <i class="fas fa-clock"></i>
-              Simple Pendulum
-            </a>
-            <a href="./shm/vertical-shm.html" class="simulation-link">
-              <i class="fas fa-arrows-alt-v"></i>
-              Vertical SHM
-            </a>
-          </div>
-        </div>
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                
+                cards.forEach(card => {
+                    const title = card.querySelector('.category-title').textContent.toLowerCase();
+                    const description = card.querySelector('.category-description').textContent.toLowerCase();
+                    const tags = card.dataset.tags.toLowerCase();
+                    const simLinks = Array.from(card.querySelectorAll('.simulation-link'))
+                        .map(link => link.textContent.toLowerCase()).join(' ');
+                    
+                    const searchContent = `${title} ${description} ${tags} ${simLinks}`;
+                    
+                    if (searchContent.includes(searchTerm)) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            });
+        }
 
-        <!-- Magnetism -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-magnet"></i>
-            </div>
-            Magnetism
-          </div>
-          <div class="simulation-list">
-            <a href="./magnetism/induction.html" class="simulation-link">
-              <i class="fas fa-bolt"></i>
-              Magnetic Induction
-            </a>
-            <a href="./magnetism/mutual-inductance.html" class="simulation-link">
-              <i class="fas fa-exchange-alt"></i>
-              Mutual Inductance
-            </a>
-            <a href="./magnetism/lenz-law.html" class="simulation-link">
-              <i class="fas fa-balance-scale"></i>
-              Lenz's Law
-            </a>
-            <a href="./magnetism/LC_Oscillations.html" class="simulation-link">
-              <i class="fas fa-balance-scale"></i>
-              LC Oscillations
-            </a>
-            <a href="./magnetism/charge-in-mf.html" class="simulation-link">
-              <i class="fas fa-balance-scale"></i>
-              Charge In Magnetic Field
-            </a>
-          </div>
-        </div>
+        // Filter functionality
+        function setupFilters() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const cards = document.querySelectorAll('.category-card');
 
-        <!-- Waves -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-water"></i>
-            </div>
-            Waves
-          </div>
-          <div class="simulation-list">
-            <a href="./waves/wave-on-string.html" class="simulation-link">
-              <i class="fas fa-guitar"></i>
-              Wave On String
-            </a>
-            <a href="./waves/wave-interference.html" class="simulation-link">
-              <i class="fas fa-wave-square"></i>
-              Wave Interference
-            </a>
-            <a href="./waves/water-ripples.html" class="simulation-link">
-              <i class="fas fa-tint"></i>
-              Water Ripples
-            </a>
-          </div>
-        </div>
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Update active button
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
 
-        <!-- Electrostatics -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-bolt"></i>
-            </div>
-            Electrostatics
-          </div>
-          <div class="simulation-list">
-            <a href="./electrostatics/electric-field.html" class="simulation-link">
-              <i class="fas fa-project-diagram"></i>
-              Electric Field
-            </a>
-            <a href="./electrostatics/equipotential-surface.html" class="simulation-link">
-              <i class="fas fa-layer-group"></i>
-              Equipotential Surfaces
-            </a>
-          </div>
-        </div>
+                    const filter = button.dataset.filter;
 
-        <!-- Ray Optics -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-lightbulb"></i>
-            </div>
-            Ray Optics
-          </div>
-          <div class="simulation-list">
-            <a href="./rayoptics/image-formation.html" class="simulation-link">
-              <i class="fas fa-search"></i>
-              Lens
-            </a>
-            <a href="./rayoptics/image-mirror.html" class="simulation-link">
-              <i class="fas fa-mirror"></i>
-              Mirror
-            </a>
-            <a href="./rayoptics/refraction-tir.html" class="simulation-link">
-              <i class="fas fa-prism"></i>
-              Refraction & TIR
-            </a>
-            <a href="./rayoptics/prism-light.html" class="simulation-link">
-              <i class="fas fa-rainbow"></i>
-              Prism Light Dispersion
-            </a>
-          </div>
-        </div>
+                    cards.forEach(card => {
+                        if (filter === 'all') {
+                            card.classList.remove('hidden');
+                        } else {
+                            const category = card.dataset.category;
+                            const tags = card.dataset.tags;
+                            
+                            if (category === filter || tags.includes(filter)) {
+                                card.classList.remove('hidden');
+                            } else {
+                                card.classList.add('hidden');
+                            }
+                        }
+                    });
+                });
+            });
+        }
 
-        <!-- Wave Optics -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-eye"></i>
-            </div>
-            Wave Optics
-          </div>
-          <div class="simulation-list">
-            <a href="./waveoptics/ydse.html" class="simulation-link">
-              <i class="fas fa-columns"></i>
-              Young's Double-Slit Experiment
-            </a>
-            <a href="./waveoptics/diffraction.html" class="simulation-link">
-              <i class="fas fa-expand-arrows-alt"></i>
-              Diffraction
-            </a>
-            <a href="./waves/wave-interference.html" class="simulation-link">
-              <i class="fas fa-wave-square"></i>
-              Interference
-            </a>
-            <a href="./waveoptics/polarizer.html" class="simulation-link">
-              <i class="fas fa-filter"></i>
-              Polarizer
-            </a>
-          </div>
-        </div>
+        // Staggered loading animation
+        function setupLoadingAnimation() {
+            const cards = document.querySelectorAll('.category-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        }
 
-        <!-- Current Electricity -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-plug"></i>
-            </div>
-            Current Electricity
-          </div>
-          <div class="simulation-list">
-            <a href="./currentelectricity/charging-discharging.html" class="simulation-link">
-              <i class="fas fa-battery-half"></i>
-              Charging & Discharging Of Capacitor
-            </a>
-            <a href="./currentelectricity/resistor.html" class="simulation-link">
-              <i class="fas fa-microchip"></i>
-              Resistor
-            </a>
-          </div>
-        </div>
+        // Count total simulations
+        function countSimulations() {
+            const cards = document.querySelectorAll('.category-card');
+            let total = 0;
+            
+            cards.forEach(card => {
+                const count = parseInt(card.querySelector('.simulation-count').textContent);
+                total += count;
+            });
+            
+            document.getElementById('totalSims').textContent = total + '+';
+        }
 
-        <!-- Laws Of Motion -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-rocket"></i>
-            </div>
-            Laws Of Motion
-          </div>
-          <div class="simulation-list">
-            <a href="./nlm/wedge.html" class="simulation-link">
-              <i class="fas fa-angle-up"></i>
-              Block On Incline
-            </a>
-          </div>
-        </div>
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            setupSearch();
+            setupFilters();
+            setupLoadingAnimation();
+            countSimulations();
+        });
 
-        <!-- Centre Of Mass -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-dot-circle"></i>
-            </div>
-            Centre Of Mass
-          </div>
-          <div class="simulation-list">
-            <a href="./com/collision.html" class="simulation-link">
-              <i class="fas fa-meteor"></i>
-              Collision
-            </a>
-          </div>
-        </div>
-
-        <!-- Heat And Thermo -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-thermometer-half"></i>
-            </div>
-            Heat And Thermo
-          </div>
-          <div class="simulation-list">
-            <a href="./heatandthermo/conduction.html" class="simulation-link">
-              <i class="fas fa-fire"></i>
-              Conduction
-            </a>
-          </div>
-        </div>
-
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-thermometer-half"></i>
-            </div>
-            KTG
-          </div>
-          <div class="simulation-list">
-            <a href="./ktg/gas.html" class="simulation-link">
-              <i class="fas fa-fire"></i>
-              Gas Particles
-            </a>
-            <a href="./ktg/gas-compression-expansion.html" class="simulation-link">
-              <i class="fas fa-fire"></i>
-              Gas Volume Relation
-            </a>
-             <a href="./ktg/heat-at-contt-volume.html" class="simulation-link">
-              <i class="fas fa-fire"></i>
-              Heat At Contt Volume
-            </a>
-            <a href="./ktg/heat-at-contt-pressure.html" class="simulation-link">
-              <i class="fas fa-fire"></i>
-              Heat At Contt Pressure
-            </a>
-          </div>
-        </div>
-
-        <!-- Modern Physics -->
-        <div class="category-card">
-          <div class="category-header">
-            <div class="category-icon">
-              <i class="fas fa-atom"></i>
-            </div>
-            Modern Physics
-          </div>
-          <div class="simulation-list">
-            <a href="./modern/photoelectriceffect.html" class="simulation-link">
-              <i class="fas fa-sun"></i>
-              Photoelectric Effect
-            </a>
-            <a href="./modern/rutherford-exp.html" class="simulation-link">
-              <i class="fas fa-sun"></i>
-              RutherFord Experiment
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container">
-      <p>© 2025 Simulatrix - Interactive Physics Learning Platform</p>
-    </div>
-  </footer>
+        // Add smooth scrolling for better UX
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
 </body>
 </html>
